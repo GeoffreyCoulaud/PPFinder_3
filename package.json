@@ -1,0 +1,37 @@
+{
+  "name": "ppfinder3",
+  "version": "1.0.0",
+  "description": "A local tillerino",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "install-app-deps",
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GeoffreyCoulaud/PPFinder_3.git"
+  },
+  "keywords": [
+    "osu!",
+    "tillerino",
+    "pp"
+  ],
+  "author": "Geoffrey Coulaud (Willex)",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/GeoffreyCoulaud/PPFinder_3/issues"
+  },
+  "homepage": "https://github.com/GeoffreyCoulaud/PPFinder_3#readme",
+  "dependencies": {
+    "electron": "^6.0.5",
+    "nouislider": "^14.0.2",
+    "ojsama": "^1.2.1",
+    "osu-parser": "^0.3.3",
+    "sqlite3": "^4.1.0",
+    "vue": "^2.6.10"
+  },
+  "devDependencies": {
+    "electron-builder": "^21.2.0"
+  }
+}

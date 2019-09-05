@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+html(lang="fr")
+	head
+		meta(charset="utf-8")
+		title PPFinder
+		link(href="../css/index.css", type="text/css", rel="stylesheet")
+	body
+		nav#search 
+			//- Title
+			h1 
+				em PP 
+				| Finder v3
+			p {{lang['description']}}
+			
+			//- Sliders for the search values
+			custom-slider(v-for="slider in sliders" v-bind="slider")
+			
+			//- Order type selection
+			h3 {{lang['order-title']}}
+			custom-select(v-bind="orderOptions")
+			//- Acending or descending order
+			custom-switch(name="order-way" :texts="[lang['order-way-asc'], lang['order-way-desc']]")
+
+			//- Mods
+			h3 {{lang['mods-title']}}
+			#mods
+				mod-reset
+				mod-option(v-for="mod in mods" v-bind:modName="mod" v-bind:name="'mod-'+mod")
+
+		section#results
+			//- here will come search results
+
+		section#buttons
+			//- Here are the floating buttons to change options and to load local files
+			button-options
+			button-load-maps
+
+		script(src="../../node_modules/vue/dist/vue.js")
+		script(src="../../node_modules/nouislider/distribute/nouislider.min.js")
+		script(src="import:lib/js/index.js" type="module")

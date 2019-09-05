@@ -1,0 +1,279 @@
+// Import osu's fonts
+@import url('https://fonts.googleapis.com/css?family=Exo+2:300,400,500,700,900&display=swap')
+
+// Import the base noUiSlider styles
+@require '../../node_modules/nouislider/distribute/nouislider.min.css'
+
+// Default settings copied from the osu website
+osuJaune = #fc2
+osuTaupe = rgb(112, 92, 101)
+osuRose = rgb(255, 102, 171)
+osuViolet = rgb(172, 57, 109)
+osuVioletFonce = rgb(56, 46, 50)
+osuBorderRadius = 1vmin
+charbon = #252525
+gis = #373737
+
+*
+	box-sizing: border-box
+
+em
+	color: osuJaune
+
+body
+	font-family: "Exo 2", "Helvetica Neue", Tahoma, Arial, "Hiragino Kaku Gothic ProN", Meiryo, "Microsoft YaHei", "Apple SD Gothic Neo", sans-serif
+	position: relative
+	color: white
+	display: flex
+	margin: 0px
+
+#search
+	background-color: charbon
+	position: sticky
+	max-width: 25em
+	min-height: 100vh
+	padding: 2em
+	z-index: 1
+	left: 0px
+	top: 0px
+	h1
+		margin: 1vmin auto
+		font-size: 3em
+	hr
+		background-color: osuViolet
+		height: 0.25vmin
+		border: none
+	#mods
+		justify-content: space-around
+		flex-wrap: wrap
+		display: flex
+		width: 100%
+		.mod
+			filter: drop-shadow(0px 0.5vmin 0.5vmin rgba(0,0,0,0.2))
+			transition: all 0.125s ease
+			margin-bottom: 1em
+			position: relative
+			user-select: none
+			cursor: pointer
+			width: 30%
+			img
+				width: 100%
+			&::after
+				background-image: url('../img/cross.svg')
+				transition: transform 0.125s ease
+				background-size: 100% 100%
+				transform: scale(0)
+				position: absolute
+				display: block
+				height: 100%
+				width: 100%
+				content: ''
+				left: 0px
+				top: 0px
+			nogs = grayscale(0)
+			rot = rotate(5deg)
+			gs = grayscale(1)
+			sca = scale(1.1)
+			&.noCare
+				img
+					filter: gs
+			&.wanted
+				transform: rot sca
+				img
+					filter: nogs
+			&.notWanted
+				transform: rot sca
+				img
+					filter: gs
+				&::after
+					transform: scale(1.1)
+
+#results
+	background-color: gris
+	position: relative
+	min-height: 100vh
+	flex-grow: 1
+	z-index: 2
+#buttons
+	distance = 3vmin
+	position: fixed
+	bottom: distance
+	right: distance
+	z-index: 3
+	.button
+		box-shadow: 0px 1vmin 2vmin rgba(0,0,0,0.2)
+		background-color: osuViolet
+		border-radius: 100vmax
+		margin-top: 1vmin
+		cursor: pointer
+		padding: 20%
+		size = 10vmin
+		height: size
+		width: size
+		img
+			width: 100%
+	.popup
+		translateCenter = translate(-50%, -50%)
+		box-shadow: 0px 2vmin 3vmin rgba(0,0,0,0.5)
+		transform: translateCenter scale(0) 
+		border-radius: osuBorderRadius
+		transition: transform 0.125s ease-out
+		background-color: charbon
+		position: fixed
+		cursor: default
+		padding: 2em
+		left: 50%
+		top: 50%
+		&.visible
+			transform: translateCenter
+	.optionsMenu
+		overflow-y: auto
+		max-height: 90vh
+		width: 90vmin
+		.closeButton
+			position: absolute
+			cursor: pointer
+			height: 1em
+			right: 1em
+			width: 1em
+			top: 1em
+			img
+				height: 100%
+				width: 100%
+		h2
+			margin-top: 0px
+		.input
+			width: 20em
+	.popupAccept
+		font-size: 1.5em
+		p 
+			margin-top: 0px
+			pre
+				margin: 0px
+				font-family: inherit
+		.optionsContainer
+			justify-content flex-end
+			display: flex
+			width: 100%
+			.option
+				box-shadow: 0px 0.5vmin 0.5vmin rgba(0,0,0,0.2)
+				border-radius: osuBorderRadius
+				padding: 0.25em 0.5em
+				margin-left: 0.5em
+				cursor: pointer
+			.accept
+				background-color: osuViolet
+			.refuse
+				background-color: osuVioletFonce
+
+// --- Custom components ---
+
+.customSelect
+	transition: height 0.25s ease-out
+	background-color: osuVioletFonce
+	border-radius: osuBorderRadius
+	margin-bottom: 1em
+	overflow-y: hidden
+	color: white
+	width: 100%
+	.customSelectOption, .customSelectTitle
+		width: 100%
+	.customSelectTitle
+		padding: 0px 0.5em
+		margin: 0.5em 0px
+		font-size: 1em
+		color: osuJaune
+	.customSelectOption
+		b = 1px solid white
+		padding: 0.25em 0.5em
+		border-bottom: b
+		cursor: pointer
+		&:last-of-type
+			border-bottom: none
+		&.selected
+			background-color: osuViolet
+			color: osuJaune
+
+.customSwitch
+	background-color: osuVioletFonce
+	justify-content: space-between
+	border-radius: osuBorderRadius
+	align-items: center
+	padding: 0.5em 1em
+	color: osuJaune
+	display: flex
+	width: 100%
+	span
+		user-select: none
+	.indicator
+		background-color: osuViolet
+		border: 1px solid charbon
+		box-sizing: content-box
+		border-radius: 100vmax
+		margin: 0px 1em
+		cursor: pointer
+		min-width: 3em
+		display: flex
+		flex-grow: 1
+		height: 1em
+		&::after
+			transition: margin-left 0.25s ease-out
+			background-color: osuJaune
+			border-radius: 100vmax
+			margin-left: 0px
+			display: block
+			content: ''
+			height: 100%
+			width: 50%
+		&.right
+			&::after
+				margin-left: 50%
+
+.customSlider
+	margin-bottom: 1em;
+	h3
+		margin: 0.25em auto;
+	.valuesDisplay
+		justify-content: space-between;
+		align-items: center;
+		margin: 0px auto;
+		display: flex;
+		width: 100%;
+		.min, .max
+			background-color: osuVioletFonce
+			border-radius: osuBorderRadius
+			box-sizing: content-box
+			padding: 0.25em 0.5em
+			font-family: inherit
+			color: osuJaune
+			display: block
+			font-size: 1em
+			border: none
+			width: 35%;
+	.slider
+		background: transparent
+		margin: 0.5em auto
+		box-shadow: none
+		display: block
+		border: none
+		height: 1em
+		width: 90%
+		.noUi-base
+			background-color: osuVioletFonce
+			border-radius: 100vmax
+			border: none
+		.noUi-connect
+			background-color: osuViolet
+			border: none
+		.noUi-handle
+			box-shadow: 0px 0.5vmin 0.5vmin rgba(0,0,0,0.2)
+			background-color: osuJaune
+			border-radius: 100vmax
+			height: 1.5em
+			border: none
+			cursor: grab
+			width: 1.5em
+			&:active
+				cursor: grabbing
+			&::after, &::before
+				display: none

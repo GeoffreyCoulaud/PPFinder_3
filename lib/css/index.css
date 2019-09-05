@@ -1,0 +1,304 @@
+@import url("https://fonts.googleapis.com/css?family=Exo+2:300,400,500,700,900&display=swap");
+@import '../../node_modules/nouislider/distribute/nouislider.min.css';
+* {
+  box-sizing: border-box;
+}
+em {
+  color: #fc2;
+}
+body {
+  font-family: "Exo 2", "Helvetica Neue", Tahoma, Arial, "Hiragino Kaku Gothic ProN", Meiryo, "Microsoft YaHei", "Apple SD Gothic Neo", sans-serif;
+  position: relative;
+  color: #fff;
+  display: flex;
+  margin: 0px;
+}
+#search {
+  background-color: #252525;
+  position: sticky;
+  max-width: 25em;
+  min-height: 100vh;
+  padding: 2em;
+  z-index: 1;
+  left: 0px;
+  top: 0px;
+}
+#search h1 {
+  margin: 1vmin auto;
+  font-size: 3em;
+}
+#search hr {
+  background-color: #ac396d;
+  height: 0.25vmin;
+  border: none;
+}
+#search #mods {
+  justify-content: space-around;
+  flex-wrap: wrap;
+  display: flex;
+  width: 100%;
+}
+#search #mods .mod {
+  filter: drop-shadow(0px 0.5vmin 0.5vmin rgba(0,0,0,0.2));
+  transition: all 0.125s ease;
+  margin-bottom: 1em;
+  position: relative;
+  user-select: none;
+  cursor: pointer;
+  width: 30%;
+}
+#search #mods .mod img {
+  width: 100%;
+}
+#search #mods .mod::after {
+  background-image: url("../img/cross.svg");
+  transition: transform 0.125s ease;
+  background-size: 100% 100%;
+  transform: scale(0);
+  position: absolute;
+  display: block;
+  height: 100%;
+  width: 100%;
+  content: '';
+  left: 0px;
+  top: 0px;
+}
+#search #mods .mod.noCare img {
+  filter: grayscale(1);
+}
+#search #mods .mod.wanted {
+  transform: rotate(5deg) scale(1.1);
+}
+#search #mods .mod.wanted img {
+  filter: grayscale(0);
+}
+#search #mods .mod.notWanted {
+  transform: rotate(5deg) scale(1.1);
+}
+#search #mods .mod.notWanted img {
+  filter: grayscale(1);
+}
+#search #mods .mod.notWanted::after {
+  transform: scale(1.1);
+}
+#results {
+  background-color: gris;
+  position: relative;
+  min-height: 100vh;
+  flex-grow: 1;
+  z-index: 2;
+}
+#buttons {
+  position: fixed;
+  bottom: 3vmin;
+  right: 3vmin;
+  z-index: 3;
+}
+#buttons .button {
+  box-shadow: 0px 1vmin 2vmin rgba(0,0,0,0.2);
+  background-color: #ac396d;
+  border-radius: 100vmax;
+  margin-top: 1vmin;
+  cursor: pointer;
+  padding: 20%;
+  height: 10vmin;
+  width: 10vmin;
+}
+#buttons .button img {
+  width: 100%;
+}
+#buttons .popup {
+  box-shadow: 0px 2vmin 3vmin rgba(0,0,0,0.5);
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 1vmin;
+  transition: transform 0.125s ease-out;
+  background-color: #252525;
+  position: fixed;
+  cursor: default;
+  padding: 2em;
+  left: 50%;
+  top: 50%;
+}
+#buttons .popup.visible {
+  transform: translate(-50%, -50%);
+}
+#buttons .optionsMenu {
+  overflow-y: auto;
+  max-height: 90vh;
+  width: 90vmin;
+}
+#buttons .optionsMenu .closeButton {
+  position: absolute;
+  cursor: pointer;
+  height: 1em;
+  right: 1em;
+  width: 1em;
+  top: 1em;
+}
+#buttons .optionsMenu .closeButton img {
+  height: 100%;
+  width: 100%;
+}
+#buttons .optionsMenu h2 {
+  margin-top: 0px;
+}
+#buttons .optionsMenu .input {
+  width: 20em;
+}
+#buttons .popupAccept {
+  font-size: 1.5em;
+}
+#buttons .popupAccept p {
+  margin-top: 0px;
+}
+#buttons .popupAccept p pre {
+  margin: 0px;
+  font-family: inherit;
+}
+#buttons .popupAccept .optionsContainer {
+  justify-content: flex-end;
+  display: flex;
+  width: 100%;
+}
+#buttons .popupAccept .optionsContainer .option {
+  box-shadow: 0px 0.5vmin 0.5vmin rgba(0,0,0,0.2);
+  border-radius: 1vmin;
+  padding: 0.25em 0.5em;
+  margin-left: 0.5em;
+  cursor: pointer;
+}
+#buttons .popupAccept .optionsContainer .accept {
+  background-color: #ac396d;
+}
+#buttons .popupAccept .optionsContainer .refuse {
+  background-color: #382e32;
+}
+.customSelect {
+  transition: height 0.25s ease-out;
+  background-color: #382e32;
+  border-radius: 1vmin;
+  margin-bottom: 1em;
+  overflow-y: hidden;
+  color: #fff;
+  width: 100%;
+}
+.customSelect .customSelectOption,
+.customSelect .customSelectTitle {
+  width: 100%;
+}
+.customSelect .customSelectTitle {
+  padding: 0px 0.5em;
+  margin: 0.5em 0px;
+  font-size: 1em;
+  color: #fc2;
+}
+.customSelect .customSelectOption {
+  padding: 0.25em 0.5em;
+  border-bottom: 1px solid #fff;
+  cursor: pointer;
+}
+.customSelect .customSelectOption:last-of-type {
+  border-bottom: none;
+}
+.customSelect .customSelectOption.selected {
+  background-color: #ac396d;
+  color: #fc2;
+}
+.customSwitch {
+  background-color: #382e32;
+  justify-content: space-between;
+  border-radius: 1vmin;
+  align-items: center;
+  padding: 0.5em 1em;
+  color: #fc2;
+  display: flex;
+  width: 100%;
+}
+.customSwitch span {
+  user-select: none;
+}
+.customSwitch .indicator {
+  background-color: #ac396d;
+  border: 1px solid #252525;
+  box-sizing: content-box;
+  border-radius: 100vmax;
+  margin: 0px 1em;
+  cursor: pointer;
+  min-width: 3em;
+  display: flex;
+  flex-grow: 1;
+  height: 1em;
+}
+.customSwitch .indicator::after {
+  transition: margin-left 0.25s ease-out;
+  background-color: #fc2;
+  border-radius: 100vmax;
+  margin-left: 0px;
+  display: block;
+  content: '';
+  height: 100%;
+  width: 50%;
+}
+.customSwitch .indicator.right::after {
+  margin-left: 50%;
+}
+.customSlider {
+  margin-bottom: 1em;
+}
+.customSlider h3 {
+  margin: 0.25em auto;
+}
+.customSlider .valuesDisplay {
+  justify-content: space-between;
+  align-items: center;
+  margin: 0px auto;
+  display: flex;
+  width: 100%;
+}
+.customSlider .valuesDisplay .min,
+.customSlider .valuesDisplay .max {
+  background-color: #382e32;
+  border-radius: 1vmin;
+  box-sizing: content-box;
+  padding: 0.25em 0.5em;
+  font-family: inherit;
+  color: #fc2;
+  display: block;
+  font-size: 1em;
+  border: none;
+  width: 35%;
+}
+.customSlider .slider {
+  background: transparent;
+  margin: 0.5em auto;
+  box-shadow: none;
+  display: block;
+  border: none;
+  height: 1em;
+  width: 90%;
+}
+.customSlider .slider .noUi-base {
+  background-color: #382e32;
+  border-radius: 100vmax;
+  border: none;
+}
+.customSlider .slider .noUi-connect {
+  background-color: #ac396d;
+  border: none;
+}
+.customSlider .slider .noUi-handle {
+  box-shadow: 0px 0.5vmin 0.5vmin rgba(0,0,0,0.2);
+  background-color: #fc2;
+  border-radius: 100vmax;
+  height: 1.5em;
+  border: none;
+  cursor: grab;
+  width: 1.5em;
+}
+.customSlider .slider .noUi-handle:active {
+  cursor: grabbing;
+}
+.customSlider .slider .noUi-handle::after,
+.customSlider .slider .noUi-handle::before {
+  display: none;
+}
