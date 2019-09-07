@@ -11,7 +11,7 @@ const customSelectOption = Vue.component('customSelectOption', {
 			default: false
 		}
 	},
-	template: `<div v-bind:class="[type, selected?'selected':'']" v-on:click="toggle">
+	template: `<div v-bind:class="[type, selected?'selected':'']" v-on:click="select">
 		<span class="name">{{lang[name]}}</span>
 	</div>`,
 	data: function(){return{
@@ -19,19 +19,22 @@ const customSelectOption = Vue.component('customSelectOption', {
 		selected: this.defaultSelected
 	}},
 	methods: {
-		toggle: function(){
-			// Toggle state
-			const newState = !this.selected;
+		getValue: function(){
+			return this.value;
+		},
+		select: function(emit = true){
 			// If parent is 'one value at a time' 
 			// and new value is 'ticked', untick ticked values
 			const parent = this.$parent;
-			if (parent.singleValue && newState){
+			if (parent.singleValue){
 				parent.$children.filter(x=>x.type==='customSelectOption').forEach((x)=>{x.selected=false});
 			}
-			// Apply toggled state
-			this.selected = newState;
-			// Emit 'change' event
-			this.$emit('changeValue')
+			// Set state to selected
+			this.selected = true;
+			// Emit 'change' event from the select
+			if (emit){
+				this.$parent.$emit('changeValue', this.value);
+			}
 		},
 	}
 });

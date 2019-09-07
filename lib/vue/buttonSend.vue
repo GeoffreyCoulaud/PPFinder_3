@@ -1,0 +1,16 @@
+const buttonSend = Vue.component('buttonSend', {
+    data: function(){return{
+        type: 'buttonSend'
+    }},
+    template: `<div :class="['button', type]" v-on:click="search">
+        <span>{{lang['search-button']}}</span>
+        <img src="../img/search.svg" />
+    </div>`,
+    methods: {
+        search: function(){
+            this.$root.$emit('search');
+        }
+    }
+});
+
+export default buttonSend;

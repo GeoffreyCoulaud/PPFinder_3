@@ -37,9 +37,14 @@
 	"mod-ht-desc" : "Half time", 
 	"mod-so-desc" : "Spin-out",
 
+	"search-button": "Search",
+
 	"refresh-maps-desc": "Do you want to scan you local beatmaps ?\nThis process could take several minutes.",
 	"refresh-maps-accept": "Yes, select beatmaps folder",
 	"refresh-maps-refuse": "No",
+
+	"scan-maps-state-listing": "Discovering local beatmaps...",
+	"scan-maps-state-processing": "Processing beatmaps",
 
 	"options-title": "Options",
 

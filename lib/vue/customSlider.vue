@@ -29,7 +29,7 @@ const customSlider = Vue.component('customSlider', {
 			// get the slider element
 			return this.$el.querySelector('.slider');
 		},
-		get: function(){
+		getValue: function(){
 			let val = this.slider().noUiSlider.get().map(x=>Number(x));
 			// get always returns an array
 			if (Array.isArray(val)){
@@ -46,7 +46,7 @@ const customSlider = Vue.component('customSlider', {
 		},
 		update: function(e){
 			// get the updated values
-			this.value = this.get();
+			this.value = this.getValue();
 		}
 	},
 	mounted: function(){

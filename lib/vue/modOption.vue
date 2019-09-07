@@ -10,6 +10,9 @@ const modOption = Vue.component('modOption', {
 			<img draggable="false" :src="'../img/'+name+'.svg'" :alt="lang[name+'-desc']" />
 		</div>`,
 	methods: {
+		getValue: function(){
+			return this.activeState
+		},
 		changeState: function(newState){
 			const stateNames = ['noCare', 'wanted', 'notWanted'];
 			this.activeState = newState;

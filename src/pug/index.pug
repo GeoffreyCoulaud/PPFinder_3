@@ -17,15 +17,19 @@ html(lang="fr")
 			
 			//- Order type selection
 			h3 {{lang['order-title']}}
-			custom-select(v-bind="orderOptions")
+			custom-select(:name="'order'" v-bind="orderOptions")
 			//- Acending or descending order
-			custom-switch(name="order-way" :texts="[lang['order-way-asc'], lang['order-way-desc']]")
+			custom-switch(:name="'order-way'" :texts="[lang['order-way-asc'], lang['order-way-desc']]")
+			
 
 			//- Mods
 			h3 {{lang['mods-title']}}
 			#mods
 				mod-reset
 				mod-option(v-for="mod in mods" v-bind:modName="mod" v-bind:name="'mod-'+mod")
+
+			//- Search button
+			button-send
 
 		section#results
 			//- here will come search results

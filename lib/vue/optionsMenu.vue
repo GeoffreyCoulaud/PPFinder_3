@@ -22,16 +22,15 @@ const optionsMenu = Vue.component('optionsMenu', {
 		<custom-switch class="input" :texts="[lang['option-link-type-http'], lang['option-link-type-direct']]"></custom-switch>
 
 		<h3>{{lang['option-language-title']}}</h3>
-		<custom-select name="languageSelect" class="input" :options="options.language" v-on:changeValue="langChange"></custom-select>
+		<custom-select name="languageSelect" class="input" :options="options.language" v-on:changeValue="emitChangeLang"></custom-select>
 
 	</div>`,
 	methods: {
-		show: function(){this.visible = true;
-		},
+		show: function(){this.visible = true;},
 		hide: function(){this.visible = false;},
-		langChange: function(){
-			// Get the language that is selected
-			this.$children
+		emitChangeLang: function(lang){
+			// Inform the vue instance that the language changed
+			this.$root.$emit('languageChange', lang);
 		}
 	}, 
 	components: {

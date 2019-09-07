@@ -1,0 +1,58 @@
+{
+	"language-id": "en",
+	"language-displayed-name": "English",
+
+	"description": "Cherchez des PPs dans vos beatmaps Osu! locales",
+
+	"slider-pp": "PP",
+	"slider-diff": "Etoiles",
+	"slider-ar": "AR",
+	"slider-cs": "CS",
+	"slider-od": "OD",
+	"slider-hp": "HP",
+	"slider-duration": "Durée (en minutes)",
+	"slider-combo": "Combo maximum",
+
+	"order-title": "Classement",
+	"order-pp": "PP",
+	"order-diff": "Etoiles",
+	"order-pp-diff": "PP / étoiles",
+	"order-combo": "Combo",
+	"order-pp-combo": "PP / note",
+	"order-duration": "Durée",
+	"order-pp-duration": "PP / minute",
+	"order-bpm": "BPM",
+
+	"order-way-asc": "Croissant",
+	"order-way-desc": "Décroissant",
+
+	"mods-title": "Mods",
+	"mod-reset-desc": "Réinitialiser tous les mods",
+	"mod-hd-desc" : "Hidden", 
+	"mod-hr-desc" : "Hard rock", 
+	"mod-dt-desc" : "Double time / Nightcore", 
+	"mod-fl-desc" : "Flashlight", 
+	"mod-nf-desc" : "No fail", 
+	"mod-ez-desc" : "Easy", 
+	"mod-ht-desc" : "Half time", 
+	"mod-so-desc" : "Spin-out",
+
+	"search-button": "Rechercher",
+
+	"refresh-maps-desc": "Voulez vous parcourir vos beatmaps locales ?\nCette action peut prendre plusieurs minutes.",
+	"refresh-maps-accept": "Oui, sélectionner le dossier des beatmaps",
+	"refresh-maps-refuse": "Non",
+	
+	"scan-maps-state-listing": "Découverte des beatmaps locales...",
+	"scan-maps-state-processing": "Calcul des beatmaps",
+
+	"options-title": "Options",
+
+	"option-link-type-title": "Type de lien utilisé pour les résultats de recherche",
+	"option-link-type-http": "Site web",
+	"option-link-type-direct": "Osu!Direct",
+
+	"option-language-title": "Langue à utiliser pour PP Finder",
+	"language-en": "English",
+	"language-fr": "Français"
+}

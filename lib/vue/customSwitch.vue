@@ -7,6 +7,9 @@ const customSwitch = Vue.component('customSwitch', {
 		defaultValue: {
 			type: Boolean,
 			default: false
+		},
+		name: {
+			type: String
 		}
 	},
 	data: function(){return{
@@ -19,6 +22,9 @@ const customSwitch = Vue.component('customSwitch', {
 		<span>{{texts[1]}}</span>
 	</div>`,
 	methods: {
+		getValue: function(){
+			return this.value;
+		},
 		invertOrder: function(){
 			this.value = !this.value;
 		}
