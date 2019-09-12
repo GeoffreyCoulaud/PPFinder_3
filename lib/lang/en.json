@@ -45,6 +45,8 @@
 
 	"scan-maps-state-listing": "Discovering local beatmaps...",
 	"scan-maps-state-processing": "Processing beatmaps",
+	"scan-maps-state-add-to-database": "Adding beatmaps to the database",
+	"scan-maps-state-error": "An error has occurred while processing the beatmaps",
 
 	"options-title": "Options",
 

@@ -10,7 +10,7 @@ const customSelect = Vue.component('customSelect', {
 	},
 	template: `<div :class="type">
 		<custom-select-title v-if="title" :name="name"></custom-select-title>
-		<custom-select-option v-for="option in options" v-bind="option"></custom-select-option>
+		<custom-select-option v-for="option in options" v-bind="option" @changeValue="valueChanged"></custom-select-option>
 	</div>`,
 	data: function(){return{
 		type: 'customSelect',
@@ -29,6 +29,10 @@ const customSelect = Vue.component('customSelect', {
 				// Return all of the ticked elements
 				return ticked;
 			}
+		},
+		valueChanged: function(){
+			// Bubble up the changeValue event
+			this.$emit('changeValue');
 		},
 		select: function(val){
 			this.$children.find(x=>x.getValue()===val).select(false);

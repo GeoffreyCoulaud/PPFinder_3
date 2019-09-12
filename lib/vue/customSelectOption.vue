@@ -11,7 +11,7 @@ const customSelectOption = Vue.component('customSelectOption', {
 			default: false
 		}
 	},
-	template: `<div v-bind:class="[type, selected?'selected':'']" v-on:click="select">
+	template: `<div v-bind:class="[type, selected?'selected':'']" @click="select">
 		<span class="name">{{lang[name]}}</span>
 	</div>`,
 	data: function(){return{

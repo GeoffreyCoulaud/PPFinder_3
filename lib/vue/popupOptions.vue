@@ -1,9 +1,9 @@
 import customSelect from 'import:lib/vue/customSelect.vue';
 import customSwitch from 'import:lib/vue/customSwitch.vue';
 
-const optionsMenu = Vue.component('optionsMenu', {
+const popupOptions = Vue.component('popupOptions', {
 	data: function(){return{
-		type: 'optionsMenu',
+		type: 'popupOptions',
 		visible: false,
 		options: {
 			language: [
@@ -13,7 +13,7 @@ const optionsMenu = Vue.component('optionsMenu', {
 		}
 	}},
 	template: `<div :class="['popup', type, visible?'visible':'']">
-		<div class="closeButton" v-on:click="$emit('close')">
+		<div class="closeButton" @click="$emit('close')">
 			<img src="../img/crossLight.svg" alt="close button icon"/>
 		</div>
 		<h2>{{lang['options-title']}}</h2>
@@ -22,7 +22,7 @@ const optionsMenu = Vue.component('optionsMenu', {
 		<custom-switch class="input" :texts="[lang['option-link-type-http'], lang['option-link-type-direct']]"></custom-switch>
 
 		<h3>{{lang['option-language-title']}}</h3>
-		<custom-select name="languageSelect" class="input" :options="options.language" v-on:changeValue="emitChangeLang"></custom-select>
+		<custom-select name="languageSelect" class="input" :options="options.language" @changeValue="emitChangeLang"></custom-select>
 
 	</div>`,
 	methods: {
@@ -39,4 +39,4 @@ const optionsMenu = Vue.component('optionsMenu', {
 	}
 });
 
-export default optionsMenu;
+export default popupOptions;

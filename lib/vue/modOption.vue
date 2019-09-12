@@ -6,7 +6,7 @@ const modOption = Vue.component('modOption', {
 		type: 'modOption'
 	}},
 	template: 
-		`<div :class="['mod', type, activeClass]" :name="name" v-on:click="loopState">
+		`<div :class="['mod', type, activeClass]" :name="name" @click="loopState">
 			<img draggable="false" :src="'../img/'+name+'.svg'" :alt="lang[name+'-desc']" />
 		</div>`,
 	methods: {

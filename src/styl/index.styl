@@ -89,22 +89,27 @@ body
 					transform: scale(1.1)
 	
 	.buttonSend
-		box-shadow: 0px 1vmin 2vmin rgba(0,0,0,0.2)
+		box-shadow: 0px 1vmin 2vmin 2vmin rgba(0,0,0,0.5)
 		border-radius: osuBorderRadius
 		background-color: osuJaune
 		justify-content: center
 		align-items: center
 		padding: 0.5em 1em
-		font-size: 1.5em
+		position: sticky
 		cursor: pointer
+		margin-top: 1em
 		color: charbon
 		display: flex
 		width: 100%
+		bottom: 2em
+		z-index: 2
+		left: 0px
 		span
+			font-size: 1.5em
 			margin-right: 0.25em
 			font-weight: 700
 		img
-			height: 1.25em
+			height: 1.5em
 
 #results
 	background-color: gris
@@ -137,6 +142,7 @@ body
 		border-radius: osuBorderRadius
 		transition: transform 0.125s ease-out
 		background-color: charbon
+		font-size: 1.5em
 		position: fixed
 		cursor: default
 		padding: 2em
@@ -144,10 +150,11 @@ body
 		top: 50%
 		&.visible
 			transform: translateCenter
-	.optionsMenu
+	.popupOptions
 		overflow-y: auto
 		max-height: 90vh
-		width: 90vmin
+		font-size: 1em
+		width: 60vmin
 		.closeButton
 			position: absolute
 			cursor: pointer
@@ -160,23 +167,10 @@ body
 				width: 100%
 		h2
 			margin-top: 0px
-		.input
-			width: 20em
-	.loading
-		border-radius: osuBorderRadius
-		background-color: osuTaupe
-		display: flex
-		height: 1em
-		width: 100%
-		div
-			background-color: osuJaune
-			text-align: left
-			padding-left: 1em
-			height: 100%
-			width: 0%
-
+	.popupScan
+		h3
+			margin-top: 0px
 	.popupAccept
-		font-size: 1.5em
 		p 
 			margin-top: 0px
 			pre
@@ -198,6 +192,26 @@ body
 				background-color: osuVioletFonce
 
 // --- Custom components ---
+
+.loadingBar
+	border-radius: osuBorderRadius
+	background-color: osuTaupe
+	overflow: hidden
+	display: flex
+	height: 1.5em
+	width: 100%
+	div
+		background-color: osuJaune
+		border-radius: inherit
+		align-items: center
+		text-align: left
+		display: flex
+		height: 100%
+		width: 0%
+		span
+			display: inline-block
+			margin-left: 0.5em
+			color: charbon
 
 .customSelect
 	transition: height 0.25s ease-out
@@ -283,11 +297,11 @@ body
 			width: 35%;
 	.slider
 		background: transparent
-		margin: 0.5em auto
+		margin: 1em auto
 		box-shadow: none
 		display: block
 		border: none
-		height: 1em
+		height: 0.5em
 		width: 90%
 		.noUi-base
 			background-color: osuVioletFonce

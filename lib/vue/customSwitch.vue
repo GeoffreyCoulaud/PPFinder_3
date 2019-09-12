@@ -18,7 +18,7 @@ const customSwitch = Vue.component('customSwitch', {
 	}},
 	template: `<div :class="type">
 		<span>{{texts[0]}}</span>
-		<div v-bind:class="['indicator', value?'right':'']" v-on:click="invertOrder"></div>
+		<div v-bind:class="['indicator', value?'right':'']" @click="invertOrder"></div>
 		<span>{{texts[1]}}</span>
 	</div>`,
 	methods: {
@@ -27,6 +27,7 @@ const customSwitch = Vue.component('customSwitch', {
 		},
 		invertOrder: function(){
 			this.value = !this.value;
+			this.$emit('changeValue');
 		}
 	}
 });

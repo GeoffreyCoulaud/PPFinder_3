@@ -3,7 +3,7 @@ const modReset = Vue.component('modReset', {
 		type: 'modReset'
 	}},
 	template: 
-		`<div :class="['mod', type]" v-on:click="reset">
+		`<div :class="['mod', type]" @click="reset">
 			<img draggable="false" src="../img/mod-reset.svg" :alt="lang['mod-reset-desc']" :title="lang['mod-desc-reset']" />
 		</div>`,
 	methods: {

@@ -2,7 +2,7 @@ const buttonSend = Vue.component('buttonSend', {
     data: function(){return{
         type: 'buttonSend'
     }},
-    template: `<div :class="['button', type]" v-on:click="search">
+    template: `<div :class="['button', type]" @click="search">
         <span>{{lang['search-button']}}</span>
         <img src="../img/search.svg" />
     </div>`,

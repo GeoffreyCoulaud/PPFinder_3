@@ -1,5 +1,7 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow, ipcMain} = require('electron');
+const {app, BrowserWindow, ipcMain, dialog} = require('electron');
+const rra = require('recursive-readdir-async');
+const sqlite = require('sqlite');
 const path = require('path');
 const fs = require('fs');
 const fsp = fs.promises;
@@ -117,13 +119,90 @@ function readUserOptions(){
 	});
 }
 
-
-
 ipcMain.on('search', function(event, options){
 	// TODO Search the database with given search options
 	event.reply('searchReply', []);
 });
 
-ipcMain.on('scanBeatmaps', function(event){
+// ------------------------------------------------------------------------------------------
+// Beatmap scanning process
+// ------------------------------------------------------------------------------------------
 
-});
+// When a request to scan local beatmaps is sent,
+// the program asks for a directory to scan, gets all .osu files there
+// then sends this list to computeBeatmaps.js
+// then a console log is produced.
+
+// if an error happens, it is alert-ed and console.error-ed
+
+ipcMain.on('scanBeatmaps', scanBeatmaps);
+async function scanBeatmaps(event){
+	// Default path to put the user in where searching Songs folder
+	const winDefaultPath = "C:\\Program Files (x86)\\osu!\\Songs";
+
+	// Ask for a directory to search
+	(async function ask(){
+		let {canceled, filePaths} = await dialog.showOpenDialog(mainWindow, {
+			defaultPath: winDefaultPath,
+			properties: ['openDirectory']
+		});
+		if (canceled || !filePaths.length){
+			throw new Error('User has cancelled the request');
+		} else {
+			return filePaths[0];
+		}
+	})()
+	.then(async function(beatmapsDir){
+		// Recursively find every .osu in the directory
+		const optionsRRA = {mode: rra.LIST, extensions: true, include: ['.osu']};
+		let maxTotal = 0;
+		let files = await rra.list(beatmapsDir, optionsRRA, (obj, i, total)=>{
+			if (total > maxTotal) {maxTotal = total;}
+			// Inform the event emitter that files are being discovered
+			event.reply('stateScanBeatmaps', {
+				state: 0,
+				progression : maxTotal,
+				max: null,
+				hasFinished: false 
+			});
+		});
+		// Map the files so that only the full paths remain
+		files = files.map(x=>x.fullname);
+		return files;
+	})
+	.then(async function (files){
+		// Establish a new connection to the database
+		let db = await sqlite.open('./ppfinder.db', { Promise });
+		// Empty the tables
+		let clearString = await fsp.readFile('src/sql/emptyBaseTables.sql', 'utf-8');
+		await db.run(clearString);
+		// Return the database and chain the files
+		return [files, db];
+	})
+	.then(async function([files, db]){
+		// Start computing beatmaps
+		let computeBeatmaps = require('./src/js/computeBeatmaps.js');
+		await computeBeatmaps(event, files, db);
+
+		// Console log that the job is finished
+		// Inform the user that the job is finished
+		console.log('Beatmap calculation ended.');
+		event.reply('stateScanBeatmaps', {
+			state: 2, // adding to db
+			progression: 0,
+			max: 0,
+			hasFinished: true
+		});
+	})
+	.catch((err)=>{
+		// In case an unexpected error happens, alert and console.error it.
+		console.error('Error during beatmap scanning', err);
+		// Then close the loading bar
+		event.reply('stateScanBeatmaps', {
+			state: 3, // Error
+			progression: 0,
+			max: 0,
+			hasFinished: true
+		})
+	});
+}

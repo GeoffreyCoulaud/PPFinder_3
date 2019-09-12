@@ -28,7 +28,10 @@
     "nouislider": "^14.0.2",
     "ojsama": "^1.2.1",
     "osu-parser": "^0.3.3",
-    "sqlite3": "^4.1.0",
+    "recursive-readdir-async": "^1.1.5",
+    "sql-escape": "^1.0.1",
+    "sql-template-strings": "^2.2.2",
+    "sqlite": "^3.0.3",
     "vue": "^2.6.10"
   },
   "devDependencies": {

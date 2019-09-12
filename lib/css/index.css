@@ -82,24 +82,29 @@ body {
   transform: scale(1.1);
 }
 #search .buttonSend {
-  box-shadow: 0px 1vmin 2vmin rgba(0,0,0,0.2);
+  box-shadow: 0px 1vmin 2vmin 2vmin rgba(0,0,0,0.5);
   border-radius: 1vmin;
   background-color: #fc2;
   justify-content: center;
   align-items: center;
   padding: 0.5em 1em;
-  font-size: 1.5em;
+  position: sticky;
   cursor: pointer;
+  margin-top: 1em;
   color: #252525;
   display: flex;
   width: 100%;
+  bottom: 2em;
+  z-index: 2;
+  left: 0px;
 }
 #search .buttonSend span {
+  font-size: 1.5em;
   margin-right: 0.25em;
   font-weight: 700;
 }
 #search .buttonSend img {
-  height: 1.25em;
+  height: 1.5em;
 }
 #results {
   background-color: gris;
@@ -133,6 +138,7 @@ body {
   border-radius: 1vmin;
   transition: transform 0.125s ease-out;
   background-color: #252525;
+  font-size: 1.5em;
   position: fixed;
   cursor: default;
   padding: 2em;
@@ -142,12 +148,13 @@ body {
 #buttons .popup.visible {
   transform: translate(-50%, -50%);
 }
-#buttons .optionsMenu {
+#buttons .popupOptions {
   overflow-y: auto;
   max-height: 90vh;
-  width: 90vmin;
+  font-size: 1em;
+  width: 60vmin;
 }
-#buttons .optionsMenu .closeButton {
+#buttons .popupOptions .closeButton {
   position: absolute;
   cursor: pointer;
   height: 1em;
@@ -155,32 +162,15 @@ body {
   width: 1em;
   top: 1em;
 }
-#buttons .optionsMenu .closeButton img {
+#buttons .popupOptions .closeButton img {
   height: 100%;
   width: 100%;
 }
-#buttons .optionsMenu h2 {
+#buttons .popupOptions h2 {
   margin-top: 0px;
 }
-#buttons .optionsMenu .input {
-  width: 20em;
-}
-#buttons .loading {
-  border-radius: 1vmin;
-  background-color: #705c65;
-  display: flex;
-  height: 1em;
-  width: 100%;
-}
-#buttons .loading div {
-  background-color: #fc2;
-  text-align: left;
-  padding-left: 1em;
-  height: 100%;
-  width: 0%;
-}
-#buttons .popupAccept {
-  font-size: 1.5em;
+#buttons .popupScan h3 {
+  margin-top: 0px;
 }
 #buttons .popupAccept p {
   margin-top: 0px;
@@ -206,6 +196,28 @@ body {
 }
 #buttons .popupAccept .optionsContainer .refuse {
   background-color: #382e32;
+}
+.loadingBar {
+  border-radius: 1vmin;
+  background-color: #705c65;
+  overflow: hidden;
+  display: flex;
+  height: 1.5em;
+  width: 100%;
+}
+.loadingBar div {
+  background-color: #fc2;
+  border-radius: inherit;
+  align-items: center;
+  text-align: left;
+  display: flex;
+  height: 100%;
+  width: 0%;
+}
+.loadingBar div span {
+  display: inline-block;
+  margin-left: 0.5em;
+  color: #252525;
 }
 .customSelect {
   transition: height 0.25s ease-out;
@@ -304,11 +316,11 @@ body {
 }
 .customSlider .slider {
   background: transparent;
-  margin: 0.5em auto;
+  margin: 1em auto;
   box-shadow: none;
   display: block;
   border: none;
-  height: 1em;
+  height: 0.5em;
   width: 90%;
 }
 .customSlider .slider .noUi-base {

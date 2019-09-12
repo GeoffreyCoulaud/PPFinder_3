@@ -1,20 +1,20 @@
-import optionsMenu from 'import:lib/vue/optionsMenu.vue';
+import popupOptions from 'import:lib/vue/popupOptions.vue';
 
 const buttonOptions = Vue.component('buttonOptions', {
 	data: function(){return{
 		type: 'buttonOptions',
 		canBeClicked: true
 	}},
-	template: `<div :class="'button '+type" v-on:click="showOptions">
+	template: `<div :class="'button '+type" @click="showOptions">
 		<img draggable="false" src="../img/options.svg" />
-		<options-menu v-on:close="onClose"></options-menu>
+		<popup-options @close="onClose"></popup-options>
 	</div>`,
 	methods: {
 		showOptions: function(){
-			this.$children.filter(x=>x.type==="optionsMenu")[0].show();
+			this.$children.filter(x=>x.type==="popupOptions")[0].show();
 		},
 		hideOptions: function(){
-			this.$children.filter(x=>x.type==="optionsMenu")[0].hide();
+			this.$children.filter(x=>x.type==="popupOptions")[0].hide();
 		},
 		onClose: function(){
 			// Prevent the show button click to be registered
@@ -24,7 +24,7 @@ const buttonOptions = Vue.component('buttonOptions', {
 		}
 	},
 	components: {
-		optionsMenu: optionsMenu
+		popupOptions: popupOptions
 	}
 });
 

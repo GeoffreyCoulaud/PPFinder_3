@@ -47,6 +47,8 @@ const customSlider = Vue.component('customSlider', {
 		update: function(e){
 			// get the updated values
 			this.value = this.getValue();
+			// emit the changeValue event
+			this.$emit('changeValue');
 		}
 	},
 	mounted: function(){
