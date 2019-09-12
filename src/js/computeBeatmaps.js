@@ -16,27 +16,25 @@ class MapMetadata{
 		this.maxCombo = maxCombo;
 		this.modsMetadatas = [];
 
-		this.generateStatement = function(){
-			// Store all the small queries in this object
-			let queries = [];
+		this.generateStatement = function(){			
+			// Create the big query
+			let bigStatement = new Statement();
 
 			// Add the map query
-			queries.push(new Statement(`INSERT INTO beatmapsMetadata (beatmapSetID, beatmapID, creator, version, artist, title, artistUnicode, titleUnicode) VALUES (?,?,?,?,?,?,?,?);`, [this.beatmapSetID, this.beatmapID, this.creator, this.version, this.artist, this.title, this.artistUnicode, this.titleUnicode]));
+			bigStatement.mergeWith(new Statement(`INSERT INTO beatmapsMetadata (beatmapSetID, beatmapID, creator, version, artist, title, artistUnicode, titleUnicode) VALUES (?,?,?,?,?,?,?,?);`, [this.beatmapSetID, this.beatmapID, this.creator, this.version, this.artist, this.title, this.artistUnicode, this.titleUnicode]));
 
 			// Add the mods queries
 			for (let mod of this.modsMetadatas){
+				bigStatement.mergeWith(new Statement(`INSERT INTO modsMetadata (mods, beatmapID, stars, ar, cs, od, hp) VALUES (?,?,?,?,?,?,?);`, [mod.mods, this.beatmapID, mod.stars, mod.ar, mod.cs, mod.od, mod.hp]));
 
-				queries.push(new Statement(`INSERT INTO modsMetadata (mods, beatmapID, stars, ar, cs, od, hp) VALUES (?,?,?,?,?,?,?);`, [mod.mods, this.beatmapID, mod.stars, mod.ar, mod.cs, mod.od, mod.hp]));
-				
 				// Add the accuracies queries
 				for (let acc of mod.accsMetadatas){
 
-					queries.push(new Statement(`INSERT INTO accuraciesMetadata (beatmapID, mods, accuracy, pp) VALUES (?,?,?,?);`, [this.beatmapID, mod.mods, acc.accuracy, acc.pp]));
+					bigStatement.mergeWith(new Statement(`INSERT INTO accuraciesMetadata (beatmapID, mods, accuracy, pp) VALUES (?,?,?,?);`, [this.beatmapID, mod.mods, acc.accuracy, acc.pp]));
 				}
 			}
 
-			// Make one big query from the multiple ones
-			return mergeStatements(queries);
+			return bigStatement;
 		}
 	}
 }
@@ -79,7 +77,7 @@ function mergeStatements(statements){
 }
 
 class Statement{
-	constructor(query, parameters = []){
+	constructor(query= '', parameters = []){
 		this.query = query;
 		this.parameters = parameters;
 		this.applyParameters = function(){
@@ -99,6 +97,16 @@ class Statement{
 			}
 			// Empty the parameters
 			this.parameters = [];
+			return this;
+		},
+		this.mergeWith = function(statement){
+			// Bind all of the statements
+			let current = this.applyParameters();
+			let other = statement.applyParameters();
+			
+			// Merge the statements
+			this.query = current.query + other.query;
+			return this;
 		}
 	}
 }	
@@ -198,12 +206,13 @@ async function computeFile(file, db){
 		mapMetadata.modsMetadatas.push(modsMetadata);
 	}
 
-	// Generate the Statement object for the mapMetadata object
+	// Generate the big Statement object for the mapMetadata object
 	let statement = mapMetadata.generateStatement();
 
 	// Execute the big Statement
-	// ! Only the first statement is executed, fix.
-	await db.run(statement.query).catch((err)=>{throw Error(`Query to DB error - ${query}\n${err}`);});
+	// ! Only the first statement is executed, fix
+	// TODO See if .exec fixes the problem
+	await db.exec(statement.query).catch((err)=>{throw Error(`Query to DB error - ${query}\n${err}`);});
 
 	// If everything has been done properly, return true
 	return true;
