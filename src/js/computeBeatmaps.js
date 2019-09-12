@@ -14,7 +14,6 @@ class MapMetadata{
 		this.beatmapSetID = beatmapSetID;
 		this.beatmapID = beatmapID;
 		this.maxCombo = maxCombo;
-		this.modsMetadatas = [];
 	}
 }
 
@@ -26,13 +25,24 @@ class ModMetadata{
 		this.od = od;
 		this.hp = hp;
 		this.stars = stars;
-		this.accsMetadatas = [];
+		this.accs = [];
+
+		this.applyMapMetadata = function(mapMetadata){
+			for (let [key, value] of Object.entries(mapMetadata)){
+				this[key] = value;
+			}
+			return this;
+		}
+		this.addAcc = function(accMetadata){
+			this.accs.push(accMetadata);
+			return this;
+		}
 	}
 }
 
 class AccMetadata{
 	constructor(accuracy, pp){
-		this.accuracy = accuracy;
+		this.accuracy = 'acc'+accuracy;
 		this.pp = pp;
 	}
 }
@@ -41,9 +51,7 @@ class AccMetadata{
 const accuracies = [100, 99, 98, 95]; // All the computed accuracies
 const possibleCombinations = require('./modCombos.js'); // All the computed mod combinations
 
-async function computeFile(file, db){
-
-	// TODO Use neDB instead of sqlite
+function computeFile(file, db){return new Promise(function(resolve, reject){
 	
 	// Get any osu prop by name from the text given
 	function getOsuProp(text, propName){
@@ -68,7 +76,7 @@ async function computeFile(file, db){
 		isNotOnlyDigits.test(beatmapID) || 
 		isNotOnlyDigits.test(beatmapSetID)
 	){ 
-		return null; 
+		throw Error("BeatmapID or BeatmapSetID error"); 
 	}
 	// Else, convert from string to integer
 	beatmapSetID = parseInt(beatmapSetID);
@@ -91,6 +99,10 @@ async function computeFile(file, db){
 	
 	// Create the base mapMetadata object needed
 	let mapMetadata = new MapMetadata(map.title, map.artist, map.creator, map.version, beatmapSetID, beatmapID, map.max_combo(), map.title_unicode, map.artist_unicode);
+
+	// Start a counter for every map done
+	let done = 0;
+	let toDo = 0;
 	
 	// Loop through all possible mods combinations
 	forMod: for (let j = 0; j < possibleCombinations.length; j++){
@@ -127,26 +139,36 @@ async function computeFile(file, db){
 			let accMetadata = new AccMetadata(accuracies[k], pp.total);
 			
 			// Add the accMetadata object to its parent
-			modsMetadata.accsMetadatas.push(accMetadata);
+			modsMetadata.addAcc(accMetadata);
 		}
 
-		// Add the modsmetadata object to its parent
-		mapMetadata.modsMetadatas.push(modsMetadata);
-	}
+		// Add the map metadata to the mod metadata
+		modsMetadata.applyMapMetadata(mapMetadata);
 
-	// Add the beatmap to the database
-	await new Promise((resolve, reject)=>{
-		db.insert(mapMetadata, function(err, newDoc){
-			if (err){ reject('Error adding mapMetadata'); }
-			else { resolve(); }
+		// Increment the number of queries to do
+		toDo++;
+		
+		// Add the score to the database
+		addToDB = new Promise((res, rej)=>{
+			db.insert(modsMetadata, function(err, newDoc){
+				if (err){ throw Error("Error adding score to the database"); }
+				else { res(); }
+			});
 		});
-	});
+		addToDB.catch((err)=>{
+			throw err;
+		}).finally(()=>{
+			done++;
+			if (done === toDo){
+				// If everything has been done properly, resolve
+				resolve();
+			}
+		});
+	}
+});}
 
-	// If everything has been done properly, return true
-	return true;
-}
+function computeAll(eventEmitter, filesList, db){ return new Promise((resolve, reject)=>{
 
-async function computeAll(eventEmitter, filesList, db){
 	/*
 		eventEmitter is an electron event emitter which we can reply to.customSelectTitle
 		filesList is an array of file paths
@@ -158,44 +180,30 @@ async function computeAll(eventEmitter, filesList, db){
 
 	// Get the total number of steps
 	let steps = filesList.length;
-	let state = 1;
-
-	// Inform the event emitter that state is beatmap computing 
-	// and that it has just started.
-	await eventEmitter.reply('stateScanBeatmaps', {
-		state: state, // Computing maps
-		progression: 0,
-		max: steps,
-		hasFinished: false
-	});
+	let done = 0;
+	
+	const state = 1; // Computing maps
 
 	// For each file, compute the metadata
-	forFiles: for (let i = 0; i < steps; i++){
-
+	filesList.forEach((file, i)=>{
 		// Get .osu file contents
-		const fileContents = await fsp.readFile(filesList[i], 'utf8');
-
-		// Gets all the metadata for the file
-		let mapSuccess = await computeFile(fileContents, db)
-		.then(()=>{
-			return true;
+		// Then gets all the metadata for the file
+		// Then informs the user that this map is done
+		fsp.readFile(file, 'utf8').then((fileContents)=>{
+			return computeFile(fileContents, db);
+		}).then(()=>{
+			return eventEmitter.reply('stateScanBeatmaps', {state: state, progression: (done+1), max: steps, hasFinished: false});
 		}).catch((err)=>{
 			console.log(`map ${i} skipped`);
 			console.log(err);
-			return false;
+		}).finally(()=>{
+			done++;
+			if (done === steps){
+				// Inform that it's finished
+				resolve();
+			}
 		});
-
-		// Inform the user that this map is done
-		await eventEmitter.reply('stateScanBeatmaps', {
-			state: state,
-			progression: (i+1),
-			max: steps,
-			hasFinished: false
-		});
-	}
-
-	// Inform that it's finished
-	return;
-}
+	});
+});}
 
 module.exports = computeAll;
