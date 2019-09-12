@@ -1,7 +1,7 @@
 // Modules to control application life and create native browser window
 const {app, BrowserWindow, ipcMain, dialog} = require('electron');
 const rra = require('recursive-readdir-async');
-const sqlite = require('sqlite');
+const nedb = require('nedb');
 const path = require('path');
 const fs = require('fs');
 const fsp = fs.promises;
@@ -170,14 +170,22 @@ async function scanBeatmaps(event){
 		files = files.map(x=>x.fullname);
 		return files;
 	})
-	.then(async function (files){
-		// Establish a new connection to the database
-		let db = await sqlite.open('./ppfinder.db', { Promise });
-		// Empty the tables
-		let clearString = await fsp.readFile('src/sql/emptyBaseTables.sql', 'utf-8');
-		await db.run(clearString);
-		// Return the database and chain the files
-		return [files, db];
+	.then(function (files){
+		return new Promise(function(resolve, reject){
+			// Establish a new connection to the database
+			let db = new nedb({filename: 'ppfinderDB.json' });
+			db.loadDatabase(function(err){
+				if (err) {reject('Could not load database');}
+				else {
+					// Empty the database
+					db.remove({}, {multi:true}, function(err, nremoved){
+						if (err){reject('Could not clear database');} 
+						// Return the database and chain the files
+						else { resolve([files, db]); }
+					});
+				}
+			});
+		});
 	})
 	.then(async function([files, db]){
 		// Start computing beatmaps

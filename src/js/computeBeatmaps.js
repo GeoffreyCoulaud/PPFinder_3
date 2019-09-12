@@ -15,27 +15,6 @@ class MapMetadata{
 		this.beatmapID = beatmapID;
 		this.maxCombo = maxCombo;
 		this.modsMetadatas = [];
-
-		this.generateStatement = function(){			
-			// Create the big query
-			let bigStatement = new Statement();
-
-			// Add the map query
-			bigStatement.mergeWith(new Statement(`INSERT INTO beatmapsMetadata (beatmapSetID, beatmapID, creator, version, artist, title, artistUnicode, titleUnicode) VALUES (?,?,?,?,?,?,?,?);`, [this.beatmapSetID, this.beatmapID, this.creator, this.version, this.artist, this.title, this.artistUnicode, this.titleUnicode]));
-
-			// Add the mods queries
-			for (let mod of this.modsMetadatas){
-				bigStatement.mergeWith(new Statement(`INSERT INTO modsMetadata (mods, beatmapID, stars, ar, cs, od, hp) VALUES (?,?,?,?,?,?,?);`, [mod.mods, this.beatmapID, mod.stars, mod.ar, mod.cs, mod.od, mod.hp]));
-
-				// Add the accuracies queries
-				for (let acc of mod.accsMetadatas){
-
-					bigStatement.mergeWith(new Statement(`INSERT INTO accuraciesMetadata (beatmapID, mods, accuracy, pp) VALUES (?,?,?,?);`, [this.beatmapID, mod.mods, acc.accuracy, acc.pp]));
-				}
-			}
-
-			return bigStatement;
-		}
 	}
 }
 
@@ -58,64 +37,13 @@ class AccMetadata{
 	}
 }
 
-function mergeStatements(statements){
-	// Gets an array of statements
-	// Returns one already bound query as a statement
-
-	let big = new Statement('');
-	for (let statement of statements){
-		// Bind the statement if it's not
-		if (statement.parameters.length){
-			statement.applyParameters();
-		}
-		// Append the statement to "big"
-		big.query += statement.query;
-	}
-
-	// Return the big statement
-	return big;
-}
-
-class Statement{
-	constructor(query= '', parameters = []){
-		this.query = query;
-		this.parameters = parameters;
-		this.applyParameters = function(){
-			// Returns a string with the "?" placeholders replaced
-			// by the corresponding parameter.
-			
-			// Apply the parameters
-			for (let parameter of this.parameters){
-				if (typeof parameter === 'string'){
-					// Escape string parameters
-					parameter = "\""+sqlEscape(parameter)+"\"";
-				} else if (typeof parameter === 'object' || typeof parameter === 'undefined'){
-					// Transform arrays, objects and undefined in nulls
-					parameter = null;
-				}
-				this.query = this.query.replace('?', parameter);
-			}
-			// Empty the parameters
-			this.parameters = [];
-			return this;
-		},
-		this.mergeWith = function(statement){
-			// Bind all of the statements
-			let current = this.applyParameters();
-			let other = statement.applyParameters();
-			
-			// Merge the statements
-			this.query = current.query + other.query;
-			return this;
-		}
-	}
-}	
-
 // Parameters
 const accuracies = [100, 99, 98, 95]; // All the computed accuracies
 const possibleCombinations = require('./modCombos.js'); // All the computed mod combinations
 
 async function computeFile(file, db){
+
+	// TODO Use neDB instead of sqlite
 	
 	// Get any osu prop by name from the text given
 	function getOsuProp(text, propName){
@@ -206,13 +134,13 @@ async function computeFile(file, db){
 		mapMetadata.modsMetadatas.push(modsMetadata);
 	}
 
-	// Generate the big Statement object for the mapMetadata object
-	let statement = mapMetadata.generateStatement();
-
-	// Execute the big Statement
-	// ! Only the first statement is executed, fix
-	// TODO See if .exec fixes the problem
-	await db.exec(statement.query).catch((err)=>{throw Error(`Query to DB error - ${query}\n${err}`);});
+	// Add the beatmap to the database
+	await new Promise((resolve, reject)=>{
+		db.insert(mapMetadata, function(err, newDoc){
+			if (err){ reject('Error adding mapMetadata'); }
+			else { resolve(); }
+		});
+	});
 
 	// If everything has been done properly, return true
 	return true;

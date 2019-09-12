@@ -25,13 +25,13 @@
   "homepage": "https://github.com/GeoffreyCoulaud/PPFinder_3#readme",
   "dependencies": {
     "electron": "^6.0.5",
+    "nedb": "^1.8.0",
     "nouislider": "^14.0.2",
     "ojsama": "^1.2.1",
     "osu-parser": "^0.3.3",
     "recursive-readdir-async": "^1.1.5",
     "sql-escape": "^1.0.1",
     "sql-template-strings": "^2.2.2",
-    "sqlite": "^3.0.3",
     "vue": "^2.6.10"
   },
   "devDependencies": {
