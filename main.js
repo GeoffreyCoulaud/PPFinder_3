@@ -166,12 +166,12 @@ async function scanBeatmaps(event){
 			// Inform the event emitter at each step that files are being discovered
 			event.reply('stateScanBeatmaps', {state: 0, progression : maxTotal});
 		})
-		.then(()=>{
+		.then((files)=>{
 			// Map the files so that only the full paths remain
 			files = files.map(x=>x.fullname);
 			resolve(files);
 		})
-		.catch((err)=>{reject(`Error while scanning the fiels : ${err}`);});
+		.catch((err)=>{reject(`Error while scanning the files : ${err}`);});
 	});})
 	// Compute all of the discovered beatmaps
 	.then(function(files){
