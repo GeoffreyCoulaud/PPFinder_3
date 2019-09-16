@@ -12,7 +12,7 @@ const popupScan = Vue.component('popupScan', {
         states: [
             'scan-maps-state-listing',
             'scan-maps-state-processing',
-            "scan-maps-state-add-to-database",
+            'scan-maps-state-add-to-database',
             'scan-maps-state-error'
         ],
         state: 0,

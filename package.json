@@ -25,7 +25,7 @@
   "homepage": "https://github.com/GeoffreyCoulaud/PPFinder_3#readme",
   "dependencies": {
     "electron": "^6.0.5",
-    "nedb": "^1.8.0",
+    "lovefield": "^2.1.12",
     "nouislider": "^14.0.2",
     "ojsama": "^1.2.1",
     "osu-parser": "^0.3.3",

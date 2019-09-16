@@ -1,7 +1,6 @@
 // Modules to control application life and create native browser window
 const {app, BrowserWindow, ipcMain, dialog} = require('electron');
 const rra = require('recursive-readdir-async');
-const nedb = require('nedb');
 const path = require('path');
 const fs = require('fs');
 const fsp = fs.promises;
@@ -138,79 +137,70 @@ ipcMain.on('search', function(event, options){
 ipcMain.on('scanBeatmaps', scanBeatmaps);
 async function scanBeatmaps(event){
 	// Default path to put the user in where searching Songs folder
-	const winDefaultPath = "C:\\Program Files (x86)\\osu!\\Songs";
+	const winDefaultOsuPath = "C:\\Program Files (x86)\\osu!";
 
 	// Ask for a directory to search
-	(async function ask(){
-		let {canceled, filePaths} = await dialog.showOpenDialog(mainWindow, {
-			defaultPath: winDefaultPath,
-			properties: ['openDirectory']
-		});
-		if (canceled || !filePaths.length){
-			throw new Error('User has cancelled the request');
-		} else {
-			return filePaths[0];
-		}
-	})()
-	.then(async function(beatmapsDir){
-		// Recursively find every .osu in the directory
-		const optionsRRA = {mode: rra.LIST, extensions: true, include: ['.osu']};
+	dialog.showOpenDialog(mainWindow, {defaultPath: winDefaultOsuPath, properties: ['openDirectory']})
+	.then(({canceled, filePaths})=>{ return new Promise((resolve, reject)=>{
+		if (canceled || !filePaths.length){reject('User has cancelled the request');} 
+		else {resolve(filePaths[0]);}
+	});})
+	// Wipe the database if a folder is selected
+	.then((beatmapsDir)=>{return new Promise((resolve, reject)=>{
+		// Tell the event emitter to wipe the database
+		event.reply('wipeDB');
+		// Wait for the database to be wiped (with a time limit)
+		const timeout = 5 * 1000; // In miliseconds
+		// Chain the beatmaps directory
+		setTimeout(()=>{resolve(beatmapsDir);}, timeout);
+		ipcMain.once('wipeDBReply', ()=>{resolve(beatmapsDir);});
+	});})
+	// Recursively find every .osu in the directory
+	.then(function(beatmapsDir){return new Promise((resolve, reject)=>{
+		// Keep track of the total 
+		// (Every file dicovery will update it but not sequentially so it can seem to shrink over time)
 		let maxTotal = 0;
-		let files = await rra.list(beatmapsDir, optionsRRA, (obj, i, total)=>{
+		// Discover the files
+		rra.list(beatmapsDir, {mode: rra.LIST, extensions: true, include: ['.osu']}, (obj, i, total)=>{
 			if (total > maxTotal) {maxTotal = total;}
-			// Inform the event emitter that files are being discovered
-			event.reply('stateScanBeatmaps', {
-				state: 0,
-				progression : maxTotal,
-				max: null,
-				hasFinished: false 
-			});
-		});
-		// Map the files so that only the full paths remain
-		files = files.map(x=>x.fullname);
-		return files;
-	})
-	.then(function (files){
-		return new Promise(function(resolve, reject){
-			// Establish a new connection to the database
-			let db = new nedb({filename: 'ppfinderDB.json' });
-			db.loadDatabase(function(err){
-				if (err) {reject('Could not load database');}
-				else {
-					// Empty the database
-					db.remove({}, {multi:true}, function(err, nremoved){
-						if (err){reject('Could not clear database');} 
-						// Return the database and chain the files
-						else { resolve([files, db]); }
-					});
-				}
-			});
-		});
-	})
-	.then(async function([files, db]){
-		// Start computing beatmaps
-		let computeBeatmaps = require('./src/js/computeBeatmaps.js');
-		await computeBeatmaps(event, files, db);
-
-		// Console log that the job is finished
-		// Inform the user that the job is finished
-		console.log('Beatmap calculation ended.');
-		event.reply('stateScanBeatmaps', {
-			state: 2, // adding to db
-			progression: 0,
-			max: 0,
-			hasFinished: true
-		});
-	})
-	.catch((err)=>{
-		// In case an unexpected error happens, alert and console.error it.
-		console.error('Error during beatmap scanning', err);
-		// Then close the loading bar
-		event.reply('stateScanBeatmaps', {
-			state: 3, // Error
-			progression: 0,
-			max: 0,
-			hasFinished: true
+			// Inform the event emitter at each step that files are being discovered
+			event.reply('stateScanBeatmaps', {state: 0, progression : maxTotal});
 		})
+		.then(()=>{
+			// Map the files so that only the full paths remain
+			files = files.map(x=>x.fullname);
+			resolve(files);
+		})
+		.catch((err)=>{reject(`Error while scanning the fiels : ${err}`);});
+	});})
+	// Compute all of the discovered beatmaps
+	.then(function(files){
+		let computeBeatmaps = require('./src/js/computeBeatmaps.js');
+		return computeBeatmaps(event, files);
+	})
+	// Send the maps done to the event emitter
+	// because it's the one adding them to the database
+	.then(function(done){ return new Promise((resolve,reject)=>{
+		let addedToDb = 0;
+		// Send the map to be added
+		done.maps.forEach((elem, index)=>{event.reply('addMapToDB', elem);});
+		// When a map is added to the database or fails,
+		// increment addedToDB and inform the client of the state
+		ipcMain.on('addMapToDBReply', (event, err)=>{
+			if (err){reject(`Error while adding beatmap to the database : ${err}`);}
+			addedToDb++;
+			event.reply('stateScanBeatmaps', {state: 2, progression: addedToDb, max: done.ok });
+			if(addedToDb === done.ok){ resolve(); }
+		});
+	});})
+	// Inform the user that it's done
+	.then(()=>{
+		event.reply('stateScanBeatmaps', {state: 2, hasFinished: true});
+	})
+	// In case an unexpected error happens, alert and console.error it.
+	.catch((err)=>{
+		console.error(err);
+		// Then close the loading bar
+		event.reply('stateScanBeatmaps', {state: 3, hasFinished: true});
 	});
 }
