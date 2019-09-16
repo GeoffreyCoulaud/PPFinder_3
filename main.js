@@ -135,7 +135,7 @@ ipcMain.on('search', function(event, options){
 // if an error happens, it is alert-ed and console.error-ed
 
 ipcMain.on('scanBeatmaps', scanBeatmaps);
-async function scanBeatmaps(event){
+function scanBeatmaps(event){
 	// Default path to put the user in where searching Songs folder
 	const winDefaultOsuPath = "C:\\Program Files (x86)\\osu!";
 
