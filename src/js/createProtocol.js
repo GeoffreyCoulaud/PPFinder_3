@@ -27,7 +27,7 @@ function createProtocol(scheme, base, normalize = true) {
 	} else {
 		normalize = function(url){
 			// Replace the custom protocol with the 'file' protocol
-			// ex: 'import:some/path/to/file.txt' becomes 'file:///some/path/to/file.txt'
+			// ex: 'load:some/path/to/file.txt' becomes 'file:///some/path/to/file.txt'
 			const matchTrailingSlash = new RegExp('[/]$');
 			const matchInitialSlash = new RegExp('^[/]');
 			const pathToMain = path.dirname(require.main.filename);

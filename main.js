@@ -11,62 +11,45 @@ let mainWindow;
 
 function createWindow (html, devtools = false) {
 	// Create the browser window.
-	mainWindow = new BrowserWindow({
-		width: 800,
-		height: 600,
-		webPreferences: {
-            nodeIntegration: true
-        }
-	});
-
-	// and load the index.html of the app.
-	mainWindow.loadFile(html);
-
-	if (devtools){
-		// Open the DevTools.
-		mainWindow.webContents.openDevTools();
-	}
-
+	mainWindow = new BrowserWindow({width: 800, height: 600, webPreferences: {nodeIntegration: true}});
+	// Load the index.html of the app.
+	mainWindow.loadFile(html); 
+	// Open the DevTools 
+	if (devtools){mainWindow.webContents.openDevTools();}
 	// Emitted when the window is closed.
-	mainWindow.on('closed', function () {
-		// Dereference the window object, usually you would store windows
-		// in an array if your app supports multi windows, this is the time
-		// when you should delete the corresponding element.
-		mainWindow = null;
-	});
+	mainWindow.on('closed', function () {mainWindow = null;});
 }
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
-	// On macOS it is common for applications and their menu bar
-	// to stay active until the user quits explicitly with Cmd + Q
-	if (process.platform !== 'darwin') {
-		app.quit();
-	}
+	// On macOS, close only with Cmd + Q, not on "window-all-closed"
+	if (process.platform !== 'darwin'){app.quit();}
 });
 
 app.on('activate', function () {
-	// On macOS it's common to re-create a window in the app when the
-	// dock icon is clicked and there are no other windows open.
-	if (mainWindow === null){
-		createWindow('lib/html/search.html', true);
-	}
+	// On macOS when there are no windows and the app is activated, create a new one
+	if (mainWindow === null){createWindow('lib/html/search.html', true);}
 });
 
 // This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.on('ready', start);
+
 function start(){
-	// Create protocol
+	// Create protocol to circumvent the file:// limitations to load modules
+	const createProtocol = require('./src/js/createProtocol');
 	const basePath = app.getAppPath(); // Base path used to resolve modules
-	const scheme = 'import'; // Protocol will be "import://./…"
-	require('./src/js/createProtocol')(scheme, basePath);
+	const scheme = 'load'; // Protocol will be "load://./…"
+	createProtocol(scheme, basePath);
 	
 	// Create the window
 	createWindow('lib/html/index.html', true);
 }
 
+// ------------------------------------------------------------------------------------------
+// Commands sent by the browser handling
+// ------------------------------------------------------------------------------------------
+
+ipcMain.on('scanBeatmaps', scanBeatmaps);
 
 ipcMain.on('readUserOptions', function(event){
 	// Send the contents of the file userOptions.json
@@ -79,48 +62,19 @@ ipcMain.on('readUserOptions', function(event){
 		console.error(err);
 	})
 });
+
 ipcMain.on('languageChange', function(event, lang){
 	readUserOptions()
 	.then((data)=>{
-		let options = data;
-		options.currentLanguage = lang;
-		return writeUserOptions(options);
+		data.currentLanguage = lang;
+		return writeUserOptions(data);
 	})
 	.then(()=>{
-		event.reply('languageChangeReply', '');
+		event.reply('languageChangeReply');
 	})
 	.catch((err)=>{
 		console.error(err);
 	});
-});
-function writeUserOptions(data){
-	return new Promise((resolve, reject)=>{
-		let j =  JSON.stringify(data);
-		fsp.writeFile('userOptions.json', j)
-		.then(()=>{
-			resolve();
-		})
-		.catch((err)=>{
-			reject(err);
-		})
-	});
-}
-function readUserOptions(){
-	return new Promise((resolve, reject)=>{
-		fsp.readFile('userOptions.json', 'utf8')
-		.then(function(data){
-			let toReturn = JSON.parse(data);
-			resolve(toReturn);
-		})
-		.catch(function(err){
-			reject(err);
-		})
-	});
-}
-
-ipcMain.on('search', function(event, options){
-	// TODO Search the database with given search options
-	event.reply('searchReply', []);
 });
 
 // ------------------------------------------------------------------------------------------
@@ -129,12 +83,12 @@ ipcMain.on('search', function(event, options){
 
 // When a request to scan local beatmaps is sent,
 // the program asks for a directory to scan, gets all .osu files there
-// then sends this list to computeBeatmaps.js
-// then a console log is produced.
+// then the database is wiped, 
+// then it sends this list of files to computeBeatmaps.js
+// then sends all of these computed metadatas to the event emitter
 
-// if an error happens, it is alert-ed and console.error-ed
+// if an error happens, it is console.error-ed
 
-ipcMain.on('scanBeatmaps', scanBeatmaps);
 function scanBeatmaps(event){
 	// Default path to put the user in where searching Songs folder
 	const winDefaultOsuPath = "C:\\Program Files (x86)\\osu!";
@@ -204,3 +158,20 @@ function scanBeatmaps(event){
 		event.reply('stateScanBeatmaps', {state: 3, hasFinished: true});
 	});
 }
+
+// ------------------------------------------------------------------------------------------
+// Global functionnalities
+// ------------------------------------------------------------------------------------------
+
+function writeUserOptions(data){return new Promise((resolve, reject)=>{
+	let j =  JSON.stringify(data);
+	fsp.writeFile('userOptions.json', j)
+	.then(()=>{resolve();})
+	.catch((err)=>{reject(err);});
+});}
+
+function readUserOptions(){return new Promise((resolve, reject)=>{
+	fsp.readFile('userOptions.json', 'utf8')
+	.then(function(data){resolve(JSON.parse(data));})
+	.catch(function(err){reject(err);});
+});}

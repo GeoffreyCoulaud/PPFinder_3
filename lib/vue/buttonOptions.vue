@@ -1,4 +1,4 @@
-import popupOptions from 'import:lib/vue/popupOptions.vue';
+import popupOptions from 'load:lib/vue/popupOptions.vue';
 
 const buttonOptions = Vue.component('buttonOptions', {
 	data: function(){return{

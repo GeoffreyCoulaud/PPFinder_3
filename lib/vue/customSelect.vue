@@ -1,5 +1,5 @@
-import customSelectOption from 'import:lib/vue/customSelectOption.vue';
-import customSelectTitle from 'import:lib/vue/customSelectTitle.vue';
+import customSelectOption from 'load:lib/vue/customSelectOption.vue';
+import customSelectTitle from 'load:lib/vue/customSelectTitle.vue';
 
 const customSelect = Vue.component('customSelect', {
 	props: {

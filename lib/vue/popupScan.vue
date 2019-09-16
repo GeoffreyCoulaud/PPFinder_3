@@ -1,4 +1,4 @@
-import loadingBar from 'import:lib/vue/loadingBar.vue';
+import loadingBar from 'load:lib/vue/loadingBar.vue';
 
 const popupScan = Vue.component('popupScan', {
 	props: {

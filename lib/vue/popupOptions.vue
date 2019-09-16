@@ -1,5 +1,5 @@
-import customSelect from 'import:lib/vue/customSelect.vue';
-import customSwitch from 'import:lib/vue/customSwitch.vue';
+import customSelect from 'load:lib/vue/customSelect.vue';
+import customSwitch from 'load:lib/vue/customSwitch.vue';
 
 const popupOptions = Vue.component('popupOptions', {
 	data: function(){return{

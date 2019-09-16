@@ -1,5 +1,5 @@
-import popupAccept from 'import:lib/vue/popupAccept.vue';
-import popupScan from 'import:lib/vue/popupScan.vue';
+import popupAccept from 'load:lib/vue/popupAccept.vue';
+import popupScan from 'load:lib/vue/popupScan.vue';
 
 const buttonLoadMaps = Vue.component('buttonLoadMaps', {
 	data: function(){return{
