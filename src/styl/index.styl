@@ -117,12 +117,13 @@ body
 	min-height: 100vh
 	flex-grow: 1
 	z-index: 2
+
 #buttons
 	distance = 3vmin
 	position: fixed
 	bottom: distance
 	right: distance
-	z-index: 3
+	z-index: 10
 	.button
 		box-shadow: 0px 1vmin 2vmin rgba(0,0,0,0.2)
 		background-color: osuViolet
@@ -133,8 +134,23 @@ body
 		size = 10vmin
 		height: size
 		width: size
+		&.noClick
+			cursor: default
 		img
 			width: 100%
+		.darkFilter
+			transition: opacity 0.125s ease-out
+			background-color: rgba(0,0,0,0.3)
+			position: fixed
+			display: none
+			height: 100%
+			width: 100%
+			opacity: 0
+			left: 0px
+			top: 0px
+			&.visible
+				display: block
+				opacity: 1
 	.popup
 		translateCenter = translate(-50%, -50%)
 		box-shadow: 0px 2vmin 3vmin rgba(0,0,0,0.5)

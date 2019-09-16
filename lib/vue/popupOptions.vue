@@ -2,9 +2,14 @@ import customSelect from 'load:lib/vue/customSelect.vue';
 import customSwitch from 'load:lib/vue/customSwitch.vue';
 
 const popupOptions = Vue.component('popupOptions', {
+	props: {
+		visible: {
+			type: Boolean,
+			default: false
+		}
+	},
 	data: function(){return{
 		type: 'popupOptions',
-		visible: false,
 		options: {
 			language: [
 				{name: "language-en", value: 'en', defaultSelected: true},
@@ -26,8 +31,6 @@ const popupOptions = Vue.component('popupOptions', {
 
 	</div>`,
 	methods: {
-		show: function(){this.visible = true;},
-		hide: function(){this.visible = false;},
 		emitChangeLang: function(lang){
 			// Inform the vue instance that the language changed
 			this.$root.$emit('languageChange', lang);

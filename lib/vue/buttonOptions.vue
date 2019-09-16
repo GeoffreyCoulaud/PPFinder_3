@@ -1,20 +1,26 @@
 import popupOptions from 'load:lib/vue/popupOptions.vue';
+import darkFilter from 'load:lib/vue/darkFilter.vue';
 
 const buttonOptions = Vue.component('buttonOptions', {
 	data: function(){return{
 		type: 'buttonOptions',
-		canBeClicked: true
+		popups: {
+			options: {
+				visible: false
+			}
+		}
 	}},
-	template: `<div :class="'button '+type" @click="showOptions">
+	template: `<div :class="['button', type, popups.options.visible?'noClick':'']" @click="showOptions">
 		<img draggable="false" src="../img/options.svg" />
-		<popup-options @close="onClose"></popup-options>
+		<dark-filter :visible="popups.options.visible"></dark-filter>
+		<popup-options @close="onClose" :visible="popups.options.visible"></popup-options>
 	</div>`,
 	methods: {
 		showOptions: function(){
-			this.$children.filter(x=>x.type==="popupOptions")[0].show();
+			this.popups.options.visible = true;
 		},
 		hideOptions: function(){
-			this.$children.filter(x=>x.type==="popupOptions")[0].hide();
+			this.popups.options.visible = false;
 		},
 		onClose: function(){
 			// Prevent the show button click to be registered
@@ -24,7 +30,8 @@ const buttonOptions = Vue.component('buttonOptions', {
 		}
 	},
 	components: {
-		popupOptions: popupOptions
+		popupOptions: popupOptions,
+		darkFilter: darkFilter
 	}
 });
 

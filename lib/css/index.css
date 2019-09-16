@@ -117,7 +117,7 @@ body {
   position: fixed;
   bottom: 3vmin;
   right: 3vmin;
-  z-index: 3;
+  z-index: 10;
 }
 #buttons .button {
   box-shadow: 0px 1vmin 2vmin rgba(0,0,0,0.2);
@@ -129,8 +129,26 @@ body {
   height: 10vmin;
   width: 10vmin;
 }
+#buttons .button.noClick {
+  cursor: default;
+}
 #buttons .button img {
   width: 100%;
+}
+#buttons .button .darkFilter {
+  transition: opacity 0.125s ease-out;
+  background-color: rgba(0,0,0,0.3);
+  position: fixed;
+  display: none;
+  height: 100%;
+  width: 100%;
+  opacity: 0;
+  left: 0px;
+  top: 0px;
+}
+#buttons .button .darkFilter.visible {
+  display: block;
+  opacity: 1;
 }
 #buttons .popup {
   box-shadow: 0px 2vmin 3vmin rgba(0,0,0,0.5);
