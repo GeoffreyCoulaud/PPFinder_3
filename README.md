@@ -1,6 +1,6 @@
 # PPFinder 3
  This tool uses the same mechanism as the [tillerino bot](https://github.com/Tillerino/Tillerinobot/wiki) to search through your already installed beatmaps with given criteria.
-This process is really powerful because some search queries can't be made in the base game not with the bot. 
+This process is really powerful because some search queries can't be made in the base game nor with the bot. 
 For example : if you want a map with pp goals set for a friend (to play in a multi lobby maybe) you could not use Tillerino, but PP Finder is the right tool.
 
 ## Installation
