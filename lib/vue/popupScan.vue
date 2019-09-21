@@ -9,21 +9,39 @@ const popupScan = Vue.component('popupScan', {
 	},
 	data: function(){return{
         type: 'popupScan',
-        states: [
-            'scan-maps-state-listing',
-            'scan-maps-state-processing',
-            'scan-maps-state-add-to-database',
-            'scan-maps-state-error'
-        ],
-        state: 0,
-        progression: 0,
-        max: 0
+        progression: {
+            discover: {progression: 0},
+            read: {progression: 0, failed: 0, max: 0},
+            compute: {progression: 0, failed: 0, max: 0},
+            database: {progression: 0, failed: 0, max: 0}
+        }
 	}},
 	template: `<div :class="['popup', type, visible?'visible':'']">
-        <h3>{{lang[states[state]]}}</h3>
-        <loading-bar :progression="progression" :max="max"></loading-bar>
+        <p>{{lang['scan-maps-state-listing']}}</p>
+        <loading-bar :progression="progression.discover.progression"></loading-bar>
+        
+        <p>{{lang['scan-maps-state-reading']}}</p>
+        <loading-bar
+            :progression="progression.read.progression"
+            :failed="progression.read.failed"
+            :max="progression.read.max"
+        ></loading-bar>
+
+        <p>{{lang['scan-maps-state-computing']}}</p>
+        <loading-bar 
+            :progression="progression.compute.progression" 
+            :failed="progression.compute.failed"
+            :max="progression.compute.max"
+        ></loading-bar>
+        
+        <p>{{lang['scan-maps-state-database']}}</p>
+        <loading-bar 
+            :progression="progression.database.progression" 
+            :failed="progression.database.failed"
+            :max="progression.database.max"
+        ></loading-bar>
 	</div>`,
-    components : {
+    components : {	
         loadingBar : loadingBar
     },
 });

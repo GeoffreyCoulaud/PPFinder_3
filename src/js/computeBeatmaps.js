@@ -1,8 +1,4 @@
-const sqlEscape = require('sql-escape');
 const osu = require('ojsama');
-const fs = require('fs');
-const fsp = fs.promises;
-
 class MapMetadata{
 	constructor(title, artist, creator, version, beatmapSetID, beatmapID, maxCombo, titleUnicode = "", artistUnicode = ''){
 		this.title = title;
@@ -46,11 +42,19 @@ class AccMetadata{
 	}
 }
 
+function roundToPlaces(n, places){
+	return Math.round(n * 10**places) / 10**places;
+}
+
+function round2(n){
+	return roundToPlaces(n, 2);
+}
+
 // Parameters
 const accuracies = [100, 99, 98, 95]; // All the computed accuracies
 const possibleCombinations = require('./modCombos.js'); // All the computed mod combinations
 
-function computeFile(file){return new Promise(function(resolve, reject){
+function metadataFromString(fileData){return new Promise(function(resolve, reject){
 	
 	// Get any osu prop by name from the text given
 	function getOsuProp(text, propName){
@@ -66,8 +70,8 @@ function computeFile(file){return new Promise(function(resolve, reject){
 	const isNotOnlyDigits = new RegExp('[^0-9]');
 
 	// Compute the map's beatmapID and beatmapSetID
-	let beatmapSetID = getOsuProp(file, 'BeatmapSetID');
-	let beatmapID = getOsuProp(file, 'BeatmapID');
+	let beatmapSetID = getOsuProp(fileData, 'BeatmapSetID');
+	let beatmapID = getOsuProp(fileData, 'BeatmapID');
 	// If at least one of the IDs is missing or not composed of only digits, skip the file
 	if (
 		beatmapID === null || 
@@ -85,7 +89,7 @@ function computeFile(file){return new Promise(function(resolve, reject){
 	let parser = new osu.parser();
 	let map;
 	try{
-		map = parser.feed(file).map;
+		map = parser.feed(fileData).map;
 	} catch (e){			
 		// if we can't parse the file, skip it
 		throw Error(`Beatmap can't be parsed : ${e}`);
@@ -118,7 +122,7 @@ function computeFile(file){return new Promise(function(resolve, reject){
 		}
 
 		// Create the modMetadata object needed
-		let modMetadata = new ModMetadata(combination, map.ar*bias.ar, map.cs*bias.cs, map.od*bias.od, map.hp*bias.hp, stars.total);
+		let modMetadata = new ModMetadata(combination, map.ar*bias.ar, map.cs*bias.cs, map.od*bias.od, map.hp*bias.hp, round2(stars.total));
 
 		// Loop through all possible accuracies
 		for (let k = 0; k < accuracies.length; k++){
@@ -127,11 +131,13 @@ function computeFile(file){return new Promise(function(resolve, reject){
 			let pp;
 			try {
 				pp = osu.ppv2({'stars': stars, 'acc_percent': accuracies[k]});
+				if (typeof pp.total === 'undefined'){ throw 'Total pp undefined'; }
+				if (pp.total !== 0 && !pp.total){ throw 'Total pp not 0 and falsy'; }
 			} catch (e){
 				// If pp calculation doesn't work, skip mod
 				continue forMod;
 			}
-			let accMetadata = new AccMetadata(accuracies[k], combination, pp.total);
+			let accMetadata = new AccMetadata(accuracies[k], combination, round2(pp.total, 2));
 			
 			// Add the accMetadata object to its parent
 			modMetadata.addAcc(accMetadata);
@@ -139,60 +145,15 @@ function computeFile(file){return new Promise(function(resolve, reject){
 
 		// Add the mod metadata to the map metadata
 		mapMetadata.addMod(modMetadata);
-		
 	}
 
 	// Just return the mapMetadata
 	resolve(mapMetadata);
 });}
 
-function computeAll(eventEmitter, filesList){ return new Promise((resolve, reject)=>{
-
-	/*
-		eventEmitter is an electron event emitter which we can reply to.customSelectTitle
-		filesList is an array of file paths
-		db is a sqlite database
-
-		This is an asynchronous function, thus it returns a promise.
-		(but it doesn't return any data if there is no 'return' in the function)
-	*/
-
-	// Get the total number of steps
-	let steps = filesList.length;
-	let done = {
-		total: 0,
-		failed: 0,
-		ok: 0,
-		maps: []
-	};
-
-	// For each file, compute the metadata
-	filesList.forEach((file, i)=>{
-		// Get .osu file contents
-		// Then gets all the metadata for the file
-		// Then informs the user that this map is done
-		fsp.readFile(file, 'utf8').then((fileContents)=>{
-			return computeFile(fileContents);
-		}).then((mapMetadata)=>{
-			done.ok++;
-			done.maps.push(mapMetadata);
-		}).catch((err)=>{
-			console.log(`map ${i} skipped : ${err.message}`);
-			done.failed++;
-		}).finally(()=>{
-			done.total++;
-			eventEmitter.reply('stateScanBeatmaps', {
-				state: 1,
-				max: steps,
-				progression: done.total,
-				hasFinished: false
-			});
-			if (done.total === steps){
-				// Inform that it's finished and send the done object
-				resolve(done);
-			}
-		});
-	});
-});}
-
-module.exports = computeAll;
+module.exports = {
+	metadataFromString: metadataFromString,
+	MapMetadata: MapMetadata,
+	ModMetadata: ModMetadata,
+	AccMetadata: AccMetadata
+};

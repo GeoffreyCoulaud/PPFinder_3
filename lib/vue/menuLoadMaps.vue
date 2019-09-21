@@ -1,10 +1,11 @@
 import popupAccept from 'load:lib/vue/popupAccept.vue';
 import popupScan from 'load:lib/vue/popupScan.vue';
 import darkFilter from 'load:lib/vue/darkFilter.vue';
+import roundButton from 'load:lib/vue/roundButton.vue';
 
-const buttonLoadMaps = Vue.component('buttonLoadMaps', {
+const menuLoadMaps = Vue.component('menuLoadMaps', {
 	data: function(){return{
-		type: 'buttonLoadMaps',
+		type: 'menuLoadMaps',
 		popups: {
 			permission: {
 				visible: false
@@ -14,8 +15,8 @@ const buttonLoadMaps = Vue.component('buttonLoadMaps', {
 			}
 		}
 	}},
-	template: `<div :class="['button', type, (popups.permission.visible || popups.info.visible)?'noClick':'']" @click="showPermissionPopup">
-		<img draggable="false" src="../img/playOsu.svg" />
+	template: `<div :class="['button', type]">
+		<round-button :image="'../img/playOsu.svg'" @click="showPermissionPopup"></round-button>
 		<dark-filter :visible="popups.permission.visible || popups.info.visible"></dark-filter>
 		<popup-accept :visible="popups.permission.visible" @accepted="onAccepted" @refused="onRefused"></popup-accept>
 		<popup-scan :visible="popups.info.visible"></popup-scan>
@@ -45,8 +46,9 @@ const buttonLoadMaps = Vue.component('buttonLoadMaps', {
 	components: {
 		popupAccept: popupAccept,
 		popupScan: popupScan,
-		darkFilter: darkFilter
+		darkFilter: darkFilter,
+		roundButton: roundButton
 	}
 });
 
-export default buttonLoadMaps;
+export default menuLoadMaps;

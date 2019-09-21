@@ -6,7 +6,7 @@
     - Making the stack limit higher
     - Running this script in a web browser (what I did)
     To run in a browser : 
-    - open the console of you browser (press F12),
+    - open the console of your browser (press F12),
     - copy and paste the contents of this file in the console of your browser 
     - the result is given as a JSON string in the console.
     To run in nodeJs : 

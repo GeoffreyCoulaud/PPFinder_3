@@ -1,17 +1,18 @@
 import popupOptions from 'load:lib/vue/popupOptions.vue';
 import darkFilter from 'load:lib/vue/darkFilter.vue';
+import roundButton from 'load:lib/vue/roundButton.vue';
 
-const buttonOptions = Vue.component('buttonOptions', {
+const menuOptions = Vue.component('menuOptions', {
 	data: function(){return{
-		type: 'buttonOptions',
+		type: 'menuOptions',
 		popups: {
 			options: {
 				visible: false
 			}
 		}
 	}},
-	template: `<div :class="['button', type, popups.options.visible?'noClick':'']" @click="showOptions">
-		<img draggable="false" src="../img/options.svg" />
+	template: `<div :class="['button', type]">
+		<round-button :image="'../img/options.svg'" @click="showOptions"></round-button>
 		<dark-filter :visible="popups.options.visible"></dark-filter>
 		<popup-options @close="onClose" :visible="popups.options.visible"></popup-options>
 	</div>`,
@@ -31,8 +32,9 @@ const buttonOptions = Vue.component('buttonOptions', {
 	},
 	components: {
 		popupOptions: popupOptions,
-		darkFilter: darkFilter
+		darkFilter: darkFilter,
+		roundButton: roundButton
 	}
 });
 
-export default buttonOptions;
+export default menuOptions;

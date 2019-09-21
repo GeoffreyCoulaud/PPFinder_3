@@ -4,19 +4,29 @@ const loadingBar = Vue.component('loadingBar', {
             type: Number,
             default: 0
         },
+        failed : {
+            type: Number,
+            default: 0
+        },
         max : {
             type: [Number, Object],
-            default: 0
+            default: null
         }
     },
     data: function(){return{
         type: "loadingBar"
     }},
     template : `<div :class="[type]">
-        <div :style="{width: (!max)?('100%'):(progression/max*100+'%')}">
-            <span v-if="max===null">{{progression}}</span>
-            <span v-if="max!==null">{{progression + '/' + max}}</span>
+        <div class="texts">
+            <span v-if="max===null">
+                {{progression + failed}}
+            </span>
+            <span v-if="max!==null">
+                {{(progression+failed)+'/'+max}}
+            </span>
         </div>
+        <div class="progression" :style="{width: (max === null)?('0%'):(progression/max*100+'%')}"></div>
+        <div class="failed" :style="{width: (max === null)?('0%'):(failed/max*100+'%')}"></div>
     </div>`
 });
 

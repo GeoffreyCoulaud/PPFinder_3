@@ -9,7 +9,6 @@ const customSelect = Vue.component('customSelect', {
 		singleValue: { type: Boolean, default: true}
 	},
 	template: `<div :class="type">
-		<custom-select-title v-if="title" :name="name"></custom-select-title>
 		<custom-select-option v-for="option in options" v-bind="option" @changeValue="valueChanged"></custom-select-option>
 	</div>`,
 	data: function(){return{

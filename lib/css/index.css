@@ -113,29 +113,28 @@ body {
   flex-grow: 1;
   z-index: 2;
 }
-#buttons {
+#menus {
   position: fixed;
   bottom: 3vmin;
   right: 3vmin;
   z-index: 10;
 }
-#buttons .button {
+#menus .button {
+  margin-top: 1vmin;
+}
+#menus .button .roundButton {
   box-shadow: 0px 1vmin 2vmin rgba(0,0,0,0.2);
   background-color: #ac396d;
   border-radius: 100vmax;
-  margin-top: 1vmin;
   cursor: pointer;
   padding: 20%;
   height: 10vmin;
   width: 10vmin;
 }
-#buttons .button.noClick {
-  cursor: default;
-}
-#buttons .button img {
+#menus .button .roundButton img {
   width: 100%;
 }
-#buttons .button .darkFilter {
+#menus .button .darkFilter {
   transition: opacity 0.125s ease-out;
   background-color: rgba(0,0,0,0.3);
   position: fixed;
@@ -146,11 +145,11 @@ body {
   left: 0px;
   top: 0px;
 }
-#buttons .button .darkFilter.visible {
+#menus .button .darkFilter.visible {
   display: block;
   opacity: 1;
 }
-#buttons .popup {
+#menus .popup {
   box-shadow: 0px 2vmin 3vmin rgba(0,0,0,0.5);
   transform: translate(-50%, -50%) scale(0);
   border-radius: 1vmin;
@@ -163,16 +162,16 @@ body {
   left: 50%;
   top: 50%;
 }
-#buttons .popup.visible {
+#menus .popup.visible {
   transform: translate(-50%, -50%);
 }
-#buttons .popupOptions {
+#menus .popupOptions {
   overflow-y: auto;
   max-height: 90vh;
   font-size: 1em;
   width: 60vmin;
 }
-#buttons .popupOptions .closeButton {
+#menus .popupOptions .closeButton {
   position: absolute;
   cursor: pointer;
   height: 1em;
@@ -180,62 +179,69 @@ body {
   width: 1em;
   top: 1em;
 }
-#buttons .popupOptions .closeButton img {
+#menus .popupOptions .closeButton img {
   height: 100%;
   width: 100%;
 }
-#buttons .popupOptions h2 {
+#menus .popupOptions h2 {
   margin-top: 0px;
 }
-#buttons .popupScan h3 {
+#menus .popupScan p {
+  margin: 0.5em 0px;
+}
+#menus .popupAccept p {
   margin-top: 0px;
 }
-#buttons .popupAccept p {
-  margin-top: 0px;
-}
-#buttons .popupAccept p pre {
+#menus .popupAccept p pre {
   margin: 0px;
   font-family: inherit;
 }
-#buttons .popupAccept .optionsContainer {
+#menus .popupAccept .optionsContainer {
   justify-content: flex-end;
   display: flex;
   width: 100%;
 }
-#buttons .popupAccept .optionsContainer .option {
+#menus .popupAccept .optionsContainer .option {
   box-shadow: 0px 0.5vmin 0.5vmin rgba(0,0,0,0.2);
   border-radius: 1vmin;
   padding: 0.25em 0.5em;
   margin-left: 0.5em;
   cursor: pointer;
 }
-#buttons .popupAccept .optionsContainer .accept {
+#menus .popupAccept .optionsContainer .accept {
   background-color: #ac396d;
 }
-#buttons .popupAccept .optionsContainer .refuse {
+#menus .popupAccept .optionsContainer .refuse {
   background-color: #382e32;
 }
 .loadingBar {
   border-radius: 1vmin;
   background-color: #705c65;
+  position: relative;
   overflow: hidden;
   display: flex;
   height: 1.5em;
   width: 100%;
 }
-.loadingBar div {
-  background-color: #fc2;
-  border-radius: inherit;
-  align-items: center;
+.loadingBar .texts {
+  transform: translateY(-50%);
+  display: inline-block;
+  position: absolute;
   text-align: left;
-  display: flex;
+  color: #252525;
+  left: 0.5em;
+  top: 50%;
+}
+.loadingBar .progression,
+.loadingBar .failed {
   height: 100%;
   width: 0%;
 }
-.loadingBar div span {
-  display: inline-block;
-  margin-left: 0.5em;
-  color: #252525;
+.loadingBar .progression {
+  background-color: #fc2;
+}
+.loadingBar .failed {
+  background-color: #f44336;
 }
 .customSelect {
   transition: height 0.25s ease-out;

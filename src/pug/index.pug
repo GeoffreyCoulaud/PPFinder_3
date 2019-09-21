@@ -17,7 +17,7 @@ html(lang="fr")
 			
 			//- Order type selection
 			h3 {{lang['order-title']}}
-			custom-select(:name="'order'" v-bind="orderOptions")
+			custom-select(:name="'order'" :options="orderOptions")
 			//- Acending or descending order
 			custom-switch(:name="'order-way'" :texts="[lang['order-way-asc'], lang['order-way-desc']]")
 			
@@ -34,10 +34,10 @@ html(lang="fr")
 		section#results
 			//- here will come search results
 
-		section#buttons
+		section#menus
 			//- Here are the floating buttons to change options and to load local files
-			button-options
-			button-load-maps
+			menu-options
+			menu-load-maps
 
 		script(src="../../node_modules/vue/dist/vue.js")
 		script(src="../../node_modules/nouislider/distribute/nouislider.min.js")

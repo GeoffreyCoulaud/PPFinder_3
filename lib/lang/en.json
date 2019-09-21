@@ -43,9 +43,10 @@
 	"refresh-maps-accept": "Yes, select beatmaps folder",
 	"refresh-maps-refuse": "No",
 
-	"scan-maps-state-listing": "Discovering local beatmaps...",
-	"scan-maps-state-processing": "Processing beatmaps",
-	"scan-maps-state-add-to-database": "Adding beatmaps to the database",
+	"scan-maps-state-listing": "Discovering local beatmaps",
+	"scan-maps-state-reading": "Reading files",
+	"scan-maps-state-computing": "Processing beatmaps",
+	"scan-maps-state-database": "Adding beatmaps to the database",
 	"scan-maps-state-error": "An error has occurred while processing the beatmaps",
 
 	"options-title": "Options",
