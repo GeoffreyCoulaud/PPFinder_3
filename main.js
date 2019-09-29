@@ -4,7 +4,10 @@ const osuMetadataGetter = require('./src/js/computeBeatmaps.js');
 const rra = require('recursive-readdir-async');
 const fs = require('fs');
 const fsp = fs.promises;
-let db = null;
+
+// Database
+const mysql = require('mysql2/promise');
+let dbClient;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -35,7 +38,17 @@ app.on('activate', function () {
 // This method will be called when Electron has finished
 app.on('ready', start);
 
-function start(){
+async function start(){
+	// Establish a new connection pool to the database
+	dbClient = await mysql.createPool({
+		host: 'localhost',
+		user: 'root',
+		database: 'ppfinder',
+		waitForConnections: true,
+		connectionLimit: 100,
+		queueLimit: 0
+	});
+
 	// Create protocol to circumvent the file:// limitations to load modules
 	const createProtocol = require('./src/js/createProtocol');
 	const basePath = app.getAppPath(); // Base path used to resolve modules
@@ -113,18 +126,9 @@ function scanBeatmaps(event){
 	// Ask for a directory to search
 	dialog.showOpenDialog(mainWindow, {defaultPath: winDefaultOsuPath, properties: ['openDirectory']})
 	.then(({canceled, filePaths})=>{return new Promise((resolve, reject)=>{
-		if (canceled || !filePaths.length){reject('User has cancelled the request');} 
+		if (canceled){reject('User has cancelled the request');}
+		else if (!filePaths.length){reject('No .osu files in directory');}
 		else {resolve(filePaths[0]);}
-	})})
-
-	// Initialize the database
-	.then((beatmapsDir)=>{return new Promise((resolve, reject)=>{
-		// Establish a connection to the database then empty it
-		connectToDB()
-		.catch((err)=>{reject('Could not connect to the database', err)})
-		.then(emptyDB)
-		.catch((err)=>{reject('Could not empty the database', err)})
-		.then(()=>{resolve(beatmapsDir)})
 	})})
 
 	// Recursively find every .osu in the directory
@@ -137,19 +141,20 @@ function scanBeatmaps(event){
 			// Inform the event emitter at each step that files are being discovered
 			sendState();
 		})
-		.then((files)=>{
-			// Map the files so that only the full paths remain
-			files = files.map(x=>x.fullname);
-			resolve(files);
-		})
-		.catch((err)=>{
-			reject('Error during directories scanning', err);
-		});
+		// Map the files so that only the full paths remain
+		.then((files)=>resolve(files.map(x=>x.fullname)))
+		.catch((err)=> reject('Error during directories scanning', err));
+	})})
+
+	// Empty the database
+	.then(function(filesList){return new Promise((resolve, reject)=>{
+		emptyDB()
+		.then(()=>resolve(filesList))
+		.catch((err)=>reject(err))
 	})})
 
 	// Compute all of the discovered beatmaps
 	.then(function(filesList){return new Promise((resolve,reject)=>{
-
 		// Set the temporary max-s (they can decrease later)
 		done.read.max = filesList.length;
 		done.compute.max = filesList.length;
@@ -170,14 +175,13 @@ function scanBeatmaps(event){
 				})
 				.catch((err)=>{
 					done.read.failed++;
-					done.compute.failed++;
-					done.database.failed++;
+					done.compute.max--;
+					done.database.max--;
 					localReject('Error during file reading', err);
 				})
-				.finally(()=>{
-					sendState();
-				});
+				.finally(()=>sendState());
 			})
+
 			// Get the osu metadata from file contents
 			.then((fileData)=>{ return new Promise((localResolve, localReject)=>{
 				// Compute the metadata
@@ -188,33 +192,39 @@ function scanBeatmaps(event){
 				})
 				.catch((err)=>{
 					done.compute.failed++;
-					done.database.failed++;
+					done.database.max--;
 					localReject('Error during file data parsing', err);
 				})
-				.finally(()=>{
-					sendState();
-				});
+				.finally(()=>sendState());
 			})})
+
 			// Send to be added to the database
 			.then((metadata)=>{return new Promise((localResolve, localReject)=>{
 				addMapToDB(metadata)
-				.then(localResolve)
+				.then(()=>{
+					done.database.progression++;
+					localResolve();
+				})
 				.catch((err)=>{
 					done.database.failed++;
-					localReject('Error during addition to the database', err)
+					localReject(err)
 				})
 				.finally(()=>{
-					done.database.progression++;
 					sendState();
 				});
 			})})
+			
 			// console error the possible errors occuring
 			.catch(handleError)
-			// do the next file
 			.finally(()=>{
+				// Test if it was the last addition to the database
+				if (done.database.progression + done.database.failed === done.database.max){
+					callback();
+				}
 				// If the file is not the last, start to do the next one
-				if (index+1 < filesList.length){ doFile(index+1, filesList); }
-				else { callback(); }
+				if (index+1 < filesList.length){ 
+					doFile(index+1, filesList); 
+				}
 			});
 		}
 
@@ -246,28 +256,77 @@ function scanBeatmaps(event){
 // Database communication
 // ------------------------------------------------------------------------------------------
 
-function disconnectDB(){return new Promise((resDisconnect, rejDisconnect)=>{
-	// ! TEMPORARY
-	db = null;
-	resDisconnect();
-})}
-function connectToDB(){return new Promise((resConnect, rejConnect)=>{
-	// ! TEMPORARY
-	db = 'dummy database';
-	resConnect();
-})}
 function emptyDB(){return new Promise((resWipe, rejWipe)=>{
-	// ! TEMPORARY
-	fsp.writeFile('db.txt', '')
-	.then(resWipe)
-	.catch(rejWipe);
+	dbClient.query("TRUNCATE accuraciesmetadata")
+	.then(()=> dbClient.query("TRUNCATE beatmapsmetadata"))
+	.then(()=> dbClient.query("TRUNCATE modsmetadata"))
+	.then(()=>{
+		resWipe();
+	}).catch((err)=>{
+		rejWipe(err);
+	});
 })}
-function addMapToDB(mapMetadata){return new Promise((resAdd, rejAdd)=>{
-	// ! TEMPORARY
-	let data = JSON.stringify(mapMetadata)+',\n';
-	fsp.appendFile('db.txt', data)
-	.then(resAdd)
-	.catch(rejAdd);
+
+function addMapToDB(map){return new Promise((resAdd, rejAdd)=>{
+	class Query {
+		constructor(){
+			this.text = '';
+			this.data = [];
+			this.n = 0;
+			this.add = function(d){
+				// Creation of the text placeholder
+				let t = '(';
+				for (let i = 0; i<d.length; i++){ 
+					if (i !== 0){ t +=','; }
+					t += '?';
+				}
+				t+= ')';
+
+				// Adding it to text
+				if (this.n){ this.text += ',';}
+				this.text += t;
+
+				// Adding the data
+				this.data = this.data.concat(d);
+
+				// Increment the counter
+				this.n++;
+			}
+		}
+	}
+	let promises = [];
+	let queries = [new Query, new Query, new Query];
+
+	const baseTexts = [
+		'INSERT INTO beatmapsMetadata (beatmapID, beatmapSetID, creator, version, artist, title, artistUnicode, titleUnicode) VALUES ',
+
+		'INSERT INTO modsMetadata (beatmapID, mods, stars, ar, cs, od, hp) VALUES ',
+		
+		'INSERT INTO accuraciesMetadata (beatmapID, mods, accuracy, pp) VALUES '
+	];
+	for (let i=0; i<queries.length; i++){queries[i].text = baseTexts[i];}
+	
+	queries[0].add([map.beatmapID, map.beatmapSetID, map.creator, map.version, map.artist, map.title, map.artistUnicode, map.titleUnicode]);
+	for (let mod of map.mods){
+		queries[1].add([map.beatmapID, mod.mods, mod.stars, mod.ar, mod.cs, mod.od, mod.hp]);
+		for (let acc of mod.accs){
+			queries[2].add([map.beatmapID, mod.mods, acc.accuracy, acc.pp]);
+		}
+	}
+	
+	queries.forEach((val)=>{val.text+=";";});
+
+	for (let entry of Object.values(queries)){
+		promises.push( dbClient.execute(entry.text, entry.data) );
+	}
+
+	Promise.all(promises)
+	.then(()=>{
+		resAdd();
+	})
+	.catch((err)=>{
+		rejAdd(err);
+	});
 })}
 
 // ------------------------------------------------------------------------------------------

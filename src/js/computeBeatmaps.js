@@ -35,9 +35,8 @@ class ModMetadata{
 }
 
 class AccMetadata{
-	constructor(accuracy, mods, pp){
+	constructor(accuracy, pp){
 		this.accuracy = 'acc'+accuracy;
-		this.mods = mods;
 		this.pp = pp;
 	}
 }
@@ -137,7 +136,7 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 				// If pp calculation doesn't work, skip mod
 				continue forMod;
 			}
-			let accMetadata = new AccMetadata(accuracies[k], combination, round2(pp.total, 2));
+			let accMetadata = new AccMetadata(accuracies[k], round2(pp.total, 2));
 			
 			// Add the accMetadata object to its parent
 			modMetadata.addAcc(accMetadata);
