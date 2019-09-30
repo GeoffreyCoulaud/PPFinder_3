@@ -19,13 +19,14 @@ class MapMetadata{
 }
 
 class ModMetadata{
-	constructor(mods, ar, cs, od, hp, stars){
+	constructor(mods, ar, cs, od, hp, stars, duration){
 		this.mods = mods,
 		this.ar = ar;
 		this.cs = cs;
 		this.od = od;
 		this.hp = hp;
 		this.stars = stars;
+		this.duration = duration;
 		this.accs = [];
 		this.addAcc = function(accMetadata){
 			this.accs.push(accMetadata);
@@ -36,7 +37,7 @@ class ModMetadata{
 
 class AccMetadata{
 	constructor(accuracy, pp){
-		this.accuracy = 'acc'+accuracy;
+		this.accuracy = accuracy;
 		this.pp = pp;
 	}
 }
@@ -62,10 +63,26 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 		if (matchs === null || typeof matchs[1] !== 'string'){ return null; }
 		return matchs[1];
 	}
+
+	// Get the duration of the map
+	function getOsuDuration(text){
+		////const matchStart = /\[HitObjects\]\s*(?:[0-9]+,){2}([0-9]+)\S*\s/g;
+		////const matchEnd = /\[HitObjects\](?:[\s\S]*\n)+(?:[0-9]+,){2}([0-9]+)/g;
+		const matchStartEnd = /(?:\[HitObjects\]\s*)(?:[0-9]+,){2}([0-9]+)(?:[\s\S]*\n)+(?:[0-9]+,){2}([0-9]+)/g;
+		let matchs = text.match(matchStartEnd);
+		if (matchs === null || !(1 in matchs) || !(2 in matchs) ){
+			throw Error('Beatmap has less than 2 hit objects');
+		}
+		let start = parseInt(matchs[1]);
+		let end = parseInt(matchs[2]);
+		return end - start;
+	}
 	
 	// Detect bias regexps
 	const isHR = new RegExp('HR');
 	const isEZ = new RegExp('EZ');
+	const isDT = new RegExp('DT');
+	const isHT = new RegExp('HT');
 	const isNotOnlyDigits = new RegExp('[^0-9]');
 
 	// Compute the map's beatmapID and beatmapSetID
@@ -84,10 +101,13 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 	beatmapSetID = parseInt(beatmapSetID);
 	beatmapID = parseInt(beatmapID);
 
-	// Compute the global metadata for the map
+	
 	let parser = new osu.parser();
-	let map;
+	let duration, map;
 	try{
+		// Get the rough map duration in seconds
+		duration = getOsuDuration(fileData);
+		// Compute the global metadata for the map
 		map = parser.feed(fileData).map;
 	} catch (e){			
 		// if we can't parse the file, skip it
@@ -100,7 +120,17 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 	}
 	
 	// Create the base mapMetadata object needed
-	let mapMetadata = new MapMetadata(map.title, map.artist, map.creator, map.version, beatmapSetID, beatmapID, map.max_combo(), map.title_unicode, map.artist_unicode);
+	let mapMetadata = new MapMetadata(
+		map.title, 
+		map.artist, 
+		map.creator, 
+		map.version, 
+		beatmapSetID, 
+		beatmapID, 
+		map.max_combo(), 
+		map.title_unicode, 
+		map.artist_unicode
+	);
 	
 	// Loop through all possible mods combinations
 	forMod: for (let j = 0; j < possibleCombinations.length; j++){
@@ -111,7 +141,7 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 		let stars = new osu.diff().calc({'map':map, 'mods':modBits});
 
 		// If there is HR or EZ set, apply their multipliers
-		let bias = {ar: 1,cs: 1,od: 1,hp: 1};
+		let bias = {ar: 1,cs: 1,od: 1,hp: 1,duration: 1};
 		if (isHR.test(combination)){
 			bias.ar = bias.od = bias.hp = 1.4;
 			bias.cs = 1.3;
@@ -119,9 +149,24 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 		else if (isEZ.test(combination)){
 			bias.ar = bias.cs = bias.od = bias.hp = 0.5;
 		}
+		// If a duration multiplier is set, apply it
+		if (isDT.test(combination)){
+			bias.duration = 0.67;
+		} 
+		else if (isHT.test(combination)){
+			bias.duration = 1.33;
+		}
 
 		// Create the modMetadata object needed
-		let modMetadata = new ModMetadata(combination, map.ar*bias.ar, map.cs*bias.cs, map.od*bias.od, map.hp*bias.hp, round2(stars.total));
+		let modMetadata = new ModMetadata(
+			combination, 
+			round2(map.ar*bias.ar), 
+			round2(map.cs*bias.cs), 
+			round2(map.od*bias.od), 
+			round2(map.hp*bias.hp), 
+			round2(stars.total),
+			round2(duration*bias.duration)
+		);
 
 		// Loop through all possible accuracies
 		for (let k = 0; k < accuracies.length; k++){

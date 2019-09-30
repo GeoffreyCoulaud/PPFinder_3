@@ -92,6 +92,19 @@ ipcMain.on('languageChange', function(event, lang){
 });
 
 // ------------------------------------------------------------------------------------------
+// Beatmap searching process
+// ------------------------------------------------------------------------------------------
+
+// When a request for beatmaps is sent, 
+// the program searchs the database for beatmaps that match the criterias
+// as an array of Play-s
+
+function searchBeatmaps(event, c, start = 0, limit = 50){
+	// TODO Prepare the criteria to be understood by the database
+}
+
+
+// ------------------------------------------------------------------------------------------
 // Beatmap scanning process
 // ------------------------------------------------------------------------------------------
 
@@ -260,6 +273,9 @@ function emptyDB(){return new Promise((resWipe, rejWipe)=>{
 	dbClient.query("TRUNCATE accuraciesmetadata")
 	.then(()=> dbClient.query("TRUNCATE beatmapsmetadata"))
 	.then(()=> dbClient.query("TRUNCATE modsmetadata"))
+	.then(()=> dbClient.query("OPTIMIZE TABLE accuraciesmetadata"))
+	.then(()=> dbClient.query("OPTIMIZE TABLE beatmapsmetadata"))
+	.then(()=> dbClient.query("OPTIMIZE TABLE modsmetadata"))
 	.then(()=>{
 		resWipe();
 	}).catch((err)=>{
@@ -268,6 +284,9 @@ function emptyDB(){return new Promise((resWipe, rejWipe)=>{
 })}
 
 function addMapToDB(map){return new Promise((resAdd, rejAdd)=>{
+
+	// ! Add the combo and duration columns
+
 	class Query {
 		constructor(){
 			this.text = '';
@@ -329,8 +348,156 @@ function addMapToDB(map){return new Promise((resAdd, rejAdd)=>{
 	});
 })}
 
+function searchDB(criteria){return new Promise((resSearch, rejSearch)=>{
+	/*
+		* Criteria description
+		- pp / stars / ar / cs / od / hp / duration / maxCombo
+			- min (Number)
+			- max (Number)
+		- mods
+			- wanted (Array)
+			- notWanted (Array)
+	*/
+	
+	// Generate all the possible mods
+	const allMods = require('./src/js/modCombos.js');
+	let okMods = allMods.filter((x)=>{
+		// Filter out the mods that are not in wanted
+		for (let mod of criteria.mods.wanted){
+			// If the combination does not contain the wanted exclude combination,
+			if (x.match(new RegExp(mod)) === null){
+				return false;
+			}
+		}
+		// Filter out the mods that are in not wanted 
+		for (let mod of criteria.mods.notWanted){
+			// If the combination does contains the not wanted exclude combination,
+			if (x.match(new RegExp(mod)) !== null){
+				return false;
+			}
+		}
+		// Else keep the mod combination
+		return true;
+	});
+
+	// Pagination system
+	// ! These must be escaped to be integers
+	const offset = 0;
+	const limit = 50;
+
+	// Build the query
+	let modsCriteria = '';
+	if (allMods.length !== okMods.length){
+		modsCriteria = "and mods in (";
+		for (let i=0; i<okMods.length; i++){
+			if (i !== 0) {modsCriteria+=","}
+			modsCriteria += "'"+okMods[i]+"'";
+		}
+		modsCriteria += ")";
+	}
+	let query =  `
+		SELECT
+			CONCAT(
+				acc100.pp, ';',
+				acc99.pp, ';',
+				acc98.pp, ';',
+				acc95.pp
+			) as pp
+
+			m.mods as mods,
+			m.duration as duration,
+			m.ar as ar,
+			m.cs as cs,
+			m.od as od,
+			m.hp as hp,
+			m.stars as stars,
+
+			b.title as title,
+			b.titleUnicode as titleUnicode,
+			b.artist as artist,
+			b.artistUnicode as artistUnicode,
+			b.creator as creator,
+			b.version as version,
+			b.maxCombo as maxCombo
+
+		FROM (SELECT beatmapID, mods, pp FROM accuraciesmetadata WHERE accuracy = 100 and pp BETWEEN ? AND ? ${modsCriteria}) as acc100
+
+		/* Données spécifiques au mod */
+
+		INNER JOIN modsmetadata as m
+		ON 
+			m.mods = acc100.mods and 
+			m.beatmapID = acc100.beatmapID and
+			m.ar BETWEEN ? AND ? and
+			m.cs BETWEEN ? AND ? and
+			m.od BETWEEN ? AND ? and
+			m.hp BETWEEN ? AND ? and
+			m.stars BETWEEN ? AND ? and
+			m.duration BETWEEN ? AND ?
+		
+		/* Données du .osu */
+
+		INNER JOIN beatmapsmetadata as b
+		ON 
+			b.beatmapID = acc100.beatmapID and
+			b.maxCombo BETWEEN ? AND ?
+		
+		/* Autres accuracies pour le même score*/
+
+		INNER JOIN accuraciesmetadata as acc99
+		ON 
+			acc99.accuracy = 99 and 
+			acc100.beatmapID = acc99.beatmapID and 
+			acc100.mods = acc99.mods
+
+		INNER JOIN accuraciesmetadata as acc98
+		ON 
+			acc98.accuracy = 98 and 
+			acc100.beatmapID = acc98.beatmapID and 
+			acc100.mods = acc98.mods
+
+		INNER JOIN accuraciesmetadata as acc95
+		ON 
+			acc95.accuracy = 95 and 
+			acc100.beatmapID = acc95.beatmapID and 
+			acc100.mods = acc95.mods
+
+		/* Pagination */
+
+		LIMIT ${limit} OFFSET ${offset}
+	`;
+
+	/* Placeholders order :
+		ppmin, ppmax,
+		armin, armax,
+		csmin, csmax,
+		odmin, odmax,
+		hpmin, hpmax,
+		starsmin, starsmax,
+		durationmin, durationmax,
+		maxCombomin, maxCombomax
+	*/
+
+	dbClient.execute(query, [
+		criteria.pp.min, criteria.pp.max,
+		criteria.ar.min, criteria.ar.max,
+		criteria.cs.min, criteria.cs.max,
+		criteria.od.min, criteria.od.max,
+		criteria.hp.min, criteria.hp.max,
+		criteria.stars.min, criteria.stars.max,
+		criteria.duration.min, criteria.duration.max,
+		criteria.maxCombo.min, criteria.maxCombo.max,
+	])
+	.then((rows)=>{
+		resSearch(rows);
+	})
+	.catch((err)=>{
+		rejSearch(err);
+	})
+})}
+
 // ------------------------------------------------------------------------------------------
-// Global functionnalities
+// User options 
 // ------------------------------------------------------------------------------------------
 
 function writeUserOptions(data){return new Promise((resolve, reject)=>{
