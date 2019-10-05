@@ -357,6 +357,9 @@ function searchDB(criteria){return new Promise((resSearch, rejSearch)=>{
 		- mods
 			- wanted (Array)
 			- notWanted (Array)
+		- sort
+			- id
+			- desc
 	*/
 	
 	// Generate all the possible mods
@@ -385,10 +388,29 @@ function searchDB(criteria){return new Promise((resSearch, rejSearch)=>{
 	const offset = 0;
 	const limit = 50;
 
+	// Sorting system
+	const sortPrefix = 'ORDER BY ';
+	const sorts = [
+		'acc100.pp',                // Sort by PP
+		'm.stars',                  // Sort by Stars
+		'acc100.pp / m.stars',      // Sort by PP / Stars
+		'b.maxCombo',               // Sort by Combo
+		'acc100.pp / b.maxCombo',   // Sort by PP / Note
+		'm.duration',               // Sort by Duration
+		'acc100.pp / m.duration'    // Sort by PP / Minute
+	];
+	if (!(criteria.sort.id) in sorts){ 
+		// Handle non existing sorts
+		console.warn('Non existing sort requested', criteria.sort.id);
+		criteria.sort.id = 0; 
+	} 
+	const sortSuffix = (criteria.sort.desc) ? 'DESC' : 'ASC';
+	const sort = `${sortPrefix} ${sorts[criteria.sort.id]} ${sortSuffix}`;
+
 	// Build the query
 	let modsCriteria = '';
 	if (allMods.length !== okMods.length){
-		modsCriteria = "and mods in (";
+		modsCriteria = "and acc100.mods in (";
 		for (let i=0; i<okMods.length; i++){
 			if (i !== 0) {modsCriteria+=","}
 			modsCriteria += "'"+okMods[i]+"'";
@@ -420,7 +442,18 @@ function searchDB(criteria){return new Promise((resSearch, rejSearch)=>{
 			b.version as version,
 			b.maxCombo as maxCombo
 
-		FROM (SELECT beatmapID, mods, pp FROM accuraciesmetadata WHERE accuracy = 100 and pp BETWEEN ? AND ? ${modsCriteria}) as acc100
+		FROM (
+			SELECT 
+				beatmapID, 
+				mods, 
+				pp 
+			FROM 
+				accuraciesmetadata as acc100
+			WHERE 
+				acc100.accuracy = 100 and 
+				acc100.pp BETWEEN ? AND ? 
+				${modsCriteria}
+		) as acc100
 
 		/* Données spécifiques au mod */
 
@@ -461,6 +494,10 @@ function searchDB(criteria){return new Promise((resSearch, rejSearch)=>{
 			acc95.accuracy = 95 and 
 			acc100.beatmapID = acc95.beatmapID and 
 			acc100.mods = acc95.mods
+
+		/* Sorting */
+		
+		${sort}
 
 		/* Pagination */
 
