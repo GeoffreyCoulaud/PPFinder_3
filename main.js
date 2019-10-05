@@ -92,19 +92,6 @@ ipcMain.on('languageChange', function(event, lang){
 });
 
 // ------------------------------------------------------------------------------------------
-// Beatmap searching process
-// ------------------------------------------------------------------------------------------
-
-// When a request for beatmaps is sent, 
-// the program searchs the database for beatmaps that match the criterias
-// as an array of Play-s
-
-function searchBeatmaps(event, c, start = 0, limit = 50){
-	// TODO Prepare the criteria to be understood by the database
-}
-
-
-// ------------------------------------------------------------------------------------------
 // Beatmap scanning process
 // ------------------------------------------------------------------------------------------
 
@@ -271,11 +258,11 @@ function scanBeatmaps(event){
 
 function emptyDB(){return new Promise((resWipe, rejWipe)=>{
 	dbClient.query("TRUNCATE accuraciesmetadata")
-	.then(()=> dbClient.query("TRUNCATE beatmapsmetadata"))
-	.then(()=> dbClient.query("TRUNCATE modsmetadata"))
-	.then(()=> dbClient.query("OPTIMIZE TABLE accuraciesmetadata"))
-	.then(()=> dbClient.query("OPTIMIZE TABLE beatmapsmetadata"))
-	.then(()=> dbClient.query("OPTIMIZE TABLE modsmetadata"))
+	.then(()=>dbClient.query("TRUNCATE beatmapsmetadata"))
+	.then(()=>dbClient.query("TRUNCATE modsmetadata"))
+	.then(()=>dbClient.query("OPTIMIZE TABLE accuraciesmetadata"))
+	.then(()=>dbClient.query("OPTIMIZE TABLE beatmapsmetadata"))
+	.then(()=>dbClient.query("OPTIMIZE TABLE modsmetadata"))
 	.then(()=>{ resWipe(); })
 	.catch((err)=>{ rejWipe(err); });
 })}
