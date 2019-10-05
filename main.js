@@ -276,18 +276,13 @@ function emptyDB(){return new Promise((resWipe, rejWipe)=>{
 	.then(()=> dbClient.query("OPTIMIZE TABLE accuraciesmetadata"))
 	.then(()=> dbClient.query("OPTIMIZE TABLE beatmapsmetadata"))
 	.then(()=> dbClient.query("OPTIMIZE TABLE modsmetadata"))
-	.then(()=>{
-		resWipe();
-	}).catch((err)=>{
-		rejWipe(err);
-	});
+	.then(()=>{ resWipe(); })
+	.catch((err)=>{ rejWipe(err); });
 })}
 
 function addMapToDB(map){return new Promise((resAdd, rejAdd)=>{
 
-	// ! Add the combo and duration columns
-
-	class Query {
+	class InsertQuery {
 		constructor(){
 			this.text = '';
 			this.data = [];
@@ -301,51 +296,53 @@ function addMapToDB(map){return new Promise((resAdd, rejAdd)=>{
 				}
 				t+= ')';
 
-				// Adding it to text
+				// Adding it to query text
 				if (this.n){ this.text += ',';}
 				this.text += t;
 
-				// Adding the data
+				// Adding the data to query data
 				this.data = this.data.concat(d);
 
-				// Increment the counter
+				// Increment the counter of insert queries
 				this.n++;
 			}
 		}
 	}
+
 	let promises = [];
-	let queries = [new Query, new Query, new Query];
 
+	// Build the queries
+	let queries = [new InsertQuery, new InsertQuery, new InsertQuery];
+	
+	// Add the base texts
 	const baseTexts = [
-		'INSERT INTO beatmapsMetadata (beatmapID, beatmapSetID, creator, version, artist, title, artistUnicode, titleUnicode) VALUES ',
+		'INSERT INTO beatmapsMetadata (beatmapID, beatmapSetID, creator, version, artist, title, artistUnicode, titleUnicode, maxCombo) VALUES ',
 
-		'INSERT INTO modsMetadata (beatmapID, mods, stars, ar, cs, od, hp) VALUES ',
+		'INSERT INTO modsMetadata (beatmapID, mods, stars, ar, cs, od, hp, duration) VALUES ',
 		
 		'INSERT INTO accuraciesMetadata (beatmapID, mods, accuracy, pp) VALUES '
 	];
-	for (let i=0; i<queries.length; i++){queries[i].text = baseTexts[i];}
+	for (let i=0; i<queries.length; i++){
+		queries[i].text = baseTexts[i];
+	}
 	
-	queries[0].add([map.beatmapID, map.beatmapSetID, map.creator, map.version, map.artist, map.title, map.artistUnicode, map.titleUnicode]);
+	// Add the values and text placeholders
+	queries[0].add([map.beatmapID, map.beatmapSetID, map.creator, map.version, map.artist, map.title, map.artistUnicode, map.titleUnicode, map.maxCombo]);
 	for (let mod of map.mods){
-		queries[1].add([map.beatmapID, mod.mods, mod.stars, mod.ar, mod.cs, mod.od, mod.hp]);
+		queries[1].add([map.beatmapID, mod.mods, mod.stars, mod.ar, mod.cs, mod.od, mod.hp, mod.duration]);
 		for (let acc of mod.accs){
 			queries[2].add([map.beatmapID, mod.mods, acc.accuracy, acc.pp]);
 		}
 	}
-	
 	queries.forEach((val)=>{val.text+=";";});
 
+	// Execute all the queries
 	for (let entry of Object.values(queries)){
 		promises.push( dbClient.execute(entry.text, entry.data) );
 	}
-
 	Promise.all(promises)
-	.then(()=>{
-		resAdd();
-	})
-	.catch((err)=>{
-		rejAdd(err);
-	});
+	.then(()=>{ resAdd(); })
+	.catch((err)=>{ rejAdd(err); });
 })}
 
 function searchDB(criteria){return new Promise((resSearch, rejSearch)=>{
@@ -365,14 +362,14 @@ function searchDB(criteria){return new Promise((resSearch, rejSearch)=>{
 	// Generate all the possible mods
 	const allMods = require('./src/js/modCombos.js');
 	let okMods = allMods.filter((x)=>{
-		// Filter out the mods that are not in wanted
+		// Filter out the mods that are not in "wanted"
 		for (let mod of criteria.mods.wanted){
 			// If the combination does not contain the wanted exclude combination,
 			if (x.match(new RegExp(mod)) === null){
 				return false;
 			}
 		}
-		// Filter out the mods that are in not wanted 
+		// Filter out the mods that are in "notWanted"
 		for (let mod of criteria.mods.notWanted){
 			// If the combination does contains the not wanted exclude combination,
 			if (x.match(new RegExp(mod)) !== null){
