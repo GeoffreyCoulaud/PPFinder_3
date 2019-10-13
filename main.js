@@ -556,6 +556,15 @@ function searchDB(criteria){return new Promise((resSearch, rejSearch)=>{
 		criteria.maxCombo.min, criteria.maxCombo.max,
 	])
 	.then((rows)=>{
+		// Format the results
+		rows = rows.map(row=>{
+			// Turn pp into a Map
+			row.pp = new Map(JSON.parse(row.pp)); 
+			// Format duration to be readable
+			row.durationHuman = secToMinSec(row.duration); 
+			delete row.duration;
+		});
+
 		resSearch(rows);
 	})
 	.catch((err)=>{
