@@ -11,4 +11,4 @@ const darkFilter = Vue.component('darkFilter', {
     template: `<div :class="[type, visible?'visible':'']"></div>`
 })
 
-export default darkFilter;
+module.exports = darkFilter;

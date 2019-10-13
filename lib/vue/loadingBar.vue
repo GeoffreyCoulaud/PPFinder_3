@@ -30,4 +30,4 @@ const loadingBar = Vue.component('loadingBar', {
     </div>`
 });
 
-export default loadingBar;
+module.exports = loadingBar;

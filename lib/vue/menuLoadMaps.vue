@@ -1,7 +1,7 @@
-import popupAccept from 'load:lib/vue/popupAccept.vue';
-import popupScan from 'load:lib/vue/popupScan.vue';
-import darkFilter from 'load:lib/vue/darkFilter.vue';
-import roundButton from 'load:lib/vue/roundButton.vue';
+const popupAccept = require('./popupAccept.vue');
+const popupScan = require('./popupScan.vue');
+const darkFilter = require('./darkFilter.vue');
+const roundButton = require('./roundButton.vue');
 
 const menuLoadMaps = Vue.component('menuLoadMaps', {
 	data: function(){return{
@@ -51,4 +51,4 @@ const menuLoadMaps = Vue.component('menuLoadMaps', {
 	}
 });
 
-export default menuLoadMaps;
+module.exports = menuLoadMaps;

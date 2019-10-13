@@ -32,4 +32,4 @@ const customSwitch = Vue.component('customSwitch', {
 	}
 });
 
-export default customSwitch;
+module.exports = customSwitch;

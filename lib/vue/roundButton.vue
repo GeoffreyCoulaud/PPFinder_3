@@ -12,4 +12,4 @@ const roundButton = Vue.component('roundButton', {
     </div>`
 });
 
-export default roundButton;
+module.exports = roundButton;

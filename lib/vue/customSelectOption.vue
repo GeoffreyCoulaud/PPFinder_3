@@ -39,4 +39,4 @@ const customSelectOption = Vue.component('customSelectOption', {
 	}
 });
 
-export default customSelectOption;
+module.exports = customSelectOption;

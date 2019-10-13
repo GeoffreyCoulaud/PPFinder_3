@@ -11,4 +11,4 @@ const customSelectTitle = Vue.component('customSelectTitle', {
 	template: `<h3 :class="type">{{lang[name]}}</h3>`
 });
 
-export default customSelectTitle;
+module.exports = customSelectTitle;

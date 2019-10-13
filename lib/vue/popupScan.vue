@@ -1,4 +1,4 @@
-import loadingBar from 'load:lib/vue/loadingBar.vue';
+const loadingBar = require('./loadingBar.vue');
 
 const popupScan = Vue.component('popupScan', {
 	props: {
@@ -46,4 +46,4 @@ const popupScan = Vue.component('popupScan', {
     },
 });
 
-export default popupScan;
+module.exports = popupScan;

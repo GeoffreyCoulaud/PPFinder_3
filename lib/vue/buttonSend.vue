@@ -13,4 +13,4 @@ const buttonSend = Vue.component('buttonSend', {
     }
 });
 
-export default buttonSend;
+module.exports = buttonSend;

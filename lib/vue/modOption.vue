@@ -41,4 +41,4 @@ const modOption = Vue.component('modOption', {
 	}
 });
 
-export default modOption;
+module.exports = modOption;

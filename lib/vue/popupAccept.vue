@@ -17,4 +17,4 @@ const popupAccept = Vue.component('popupAccept', {
 	</div>`
 });
 
-export default popupAccept;
+module.exports = popupAccept;

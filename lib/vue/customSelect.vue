@@ -1,5 +1,5 @@
-import customSelectOption from 'load:lib/vue/customSelectOption.vue';
-import customSelectTitle from 'load:lib/vue/customSelectTitle.vue';
+const customSelectOption = require('./customSelectOption.vue');
+const customSelectTitle = require('./customSelectTitle.vue');
 
 const customSelect = Vue.component('customSelect', {
 	props: {
@@ -43,4 +43,4 @@ const customSelect = Vue.component('customSelect', {
 	}
 });
 
-export default customSelect;
+module.exports = customSelect;

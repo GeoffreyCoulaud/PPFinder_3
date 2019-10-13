@@ -1,5 +1,5 @@
-import customSelect from 'load:lib/vue/customSelect.vue';
-import customSwitch from 'load:lib/vue/customSwitch.vue';
+const customSelect = require('./customSelect.vue');
+const customSwitch = require('./customSwitch.vue');
 
 const popupOptions = Vue.component('popupOptions', {
 	props: {
@@ -42,4 +42,4 @@ const popupOptions = Vue.component('popupOptions', {
 	}
 });
 
-export default popupOptions;
+module.exports = popupOptions;

@@ -78,4 +78,4 @@ const mapResult = Vue.component('mapResult', {
 	</a>`
 });
 
-export default mapResult;
+module.exports = mapResult;

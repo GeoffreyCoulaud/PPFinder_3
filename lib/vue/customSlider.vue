@@ -81,4 +81,4 @@ const customSlider = Vue.component('customSlider', {
 	}
 });
 
-export default customSlider;
+module.exports = customSlider;

@@ -1,6 +1,6 @@
-import popupOptions from 'load:lib/vue/popupOptions.vue';
-import darkFilter from 'load:lib/vue/darkFilter.vue';
-import roundButton from 'load:lib/vue/roundButton.vue';
+const popupOptions = require('./popupOptions.vue');
+const darkFilter = require('./darkFilter.vue');
+const roundButton = require('./roundButton.vue');
 
 const menuOptions = Vue.component('menuOptions', {
 	data: function(){return{
@@ -37,4 +37,4 @@ const menuOptions = Vue.component('menuOptions', {
 	}
 });
 
-export default menuOptions;
+module.exports = menuOptions;

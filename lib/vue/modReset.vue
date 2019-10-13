@@ -14,4 +14,4 @@ const modReset = Vue.component('modReset', {
 	}
 });
 
-export default modReset;
+module.exports = modReset;
