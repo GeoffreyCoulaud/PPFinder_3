@@ -1,9 +1,24 @@
-// Modules to control application life and create native browser window
-const {app, BrowserWindow, ipcMain, dialog} = require('electron');
+// Modules
+const {app, shell, BrowserWindow, ipcMain, dialog} = require('electron');
 const osuMetadataGetter = require('./src/js/computeBeatmaps.js');
 const rra = require('recursive-readdir-async');
 const fs = require('fs');
 const fsp = fs.promises;
+
+// User input format validator
+const validateFormat = require('./src/js/validateFormat.js');
+class MinMaxFormat extends validateFormat.Format{
+	constructor(min, max, forceInt = false){
+		super('object');
+		this.min = new NumberFormat(0, max, forceInt);
+		this.max = new NumberFormat(min, Number.MAX_SAFE_INTEGER, forceInt);
+		this.match = function(obj){
+			if (typeof obj.min !== 'number'){return false;}
+			if (typeof obj.max !== 'number'){return false;}
+			return this.min.match(obj.min) && this.max.match(obj.max);
+		}
+	}
+}
 
 // Database
 const mysql = require('mysql2/promise');
@@ -18,6 +33,11 @@ function createWindow (html, devtools = false) {
 	mainWindow = new BrowserWindow({width: 800, height: 600, webPreferences: {nodeIntegration: true}});
 	// Load the index.html of the app.
 	mainWindow.loadFile(html); 
+	// Open target=_blank links in default os browser
+	mainWindow.webContents.on('new-window', function(event, url){
+		event.preventDefault();
+		shell.openExternal(url);
+	});
 	// Open the DevTools 
 	if (devtools){mainWindow.webContents.openDevTools();}
 	// Emitted when the window is closed.
@@ -90,6 +110,14 @@ ipcMain.on('languageChange', function(event, lang){
 		console.error(err);
 	});
 });
+
+ipcMain.on('searchBeatmaps', function(event, {id, criteria}){
+	searchDB(criteria)
+	.then((results)=>{ 
+		event.reply('searchBeatmapsReply', {id: id, results : results}); 
+	})
+	.catch((err)=>{ console.error(err); });
+});	
 
 // ------------------------------------------------------------------------------------------
 // Beatmap scanning process
@@ -333,19 +361,35 @@ function addMapToDB(map){return new Promise((resAdd, rejAdd)=>{
 })}
 
 function searchDB(criteria){return new Promise((resSearch, rejSearch)=>{
-	/*
-		* Criteria description
-		- pp / stars / ar / cs / od / hp / duration / maxCombo
-			- min (Number)
-			- max (Number)
-		- mods
-			- wanted (Array)
-			- notWanted (Array)
-		- sort
-			- id
-			- desc
-	*/
+	// Criteria format expected from user
+	const criteriaFormat = {
+		pp: MinMaxFormat(0, 1e5, false),
+		ar: MinMaxFormat(0, 11, false),
+		cs: MinMaxFormat(0, 11, false),
+		od: MinMaxFormat(0, 11, false),
+		hp: MinMaxFormat(0, 11, false),
+		stars: MinMaxFormat(0, 20, false),
+		duration: MinMaxFormat(0, Number.MAX_SAFE_INTEGER, true),
+		maxCombo: MinMaxFormat(0, Number.MAX_SAFE_INTEGER, true),
+		mods: {
+			wanted: validateFormat.ArrayFormat(null),
+			notWanted: validateFormat.ArrayFormat(null)
+		},
+		sort: {
+			id: validateFormat.NumberFormat(0, sorts.length-1),
+			desc: validateFormat.BoolFormat()
+		}
+	}
 	
+	if (criteria === null){
+		// If null sent, return empty array
+		console.warn('Research criteria null');
+		resSearch([]);
+	} else if ( !validateFormat.validate(criteria, criteriaFormat) ){
+		// Validate the criteria properties
+		throw new Error('Invalid search criterias');
+	}
+
 	// Generate all the possible mods
 	const allMods = require('./src/js/modCombos.js');
 	let okMods = allMods.filter((x)=>{
@@ -404,10 +448,12 @@ function searchDB(criteria){return new Promise((resSearch, rejSearch)=>{
 	let query =  `
 		SELECT
 			CONCAT(
-				acc100.pp, ';',
-				acc99.pp, ';',
-				acc98.pp, ';',
-				acc95.pp
+				'[',
+					'[100:', acc100.pp, '],',
+					'[99:',  acc99.pp,  '],',
+					'[98:',  acc98.pp,  '],',
+					'{95:',  acc95.pp,  ']',
+				']',
 			) as pp
 
 			m.mods as mods,

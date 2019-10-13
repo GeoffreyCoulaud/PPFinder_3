@@ -107,11 +107,119 @@ body {
   height: 1.5em;
 }
 #results {
-  background-color: gris;
+  background-color: #373737;
   position: relative;
   min-height: 100vh;
   flex-grow: 1;
   z-index: 2;
+}
+#results .mapResult {
+  border-radius: 1vmin 0px 0px 1vmin;
+  box-shadow: 0px 0.5em 0.5em rgba(0,0,0,0.3);
+  margin: 1em 0px 1em -1.25em;
+  width: calc(100% + 1.25em);
+  box-sizing: border-box;
+  text-decoration: none;
+  position: relative;
+  color: #fff;
+  display: flex;
+  padding: 1em;
+}
+#results .mapResult .background {
+  border-radius: inherit;
+  position: absolute;
+  overflow: hidden;
+  height: 100%;
+  z-index: -1;
+  width: 100%;
+  left: 0px;
+  top: 0px;
+}
+#results .mapResult .background img {
+  transform: translate(-50%, -50%);
+  position: absolute;
+  min-height: 100%;
+  min-width: 100%;
+  left: 50%;
+  top: 50%;
+}
+#results .mapResult .background .overlay {
+  background-color: rgba(0,0,0,0.8);
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  left: 0px;
+  top: 0px;
+}
+#results .mapResult .content {
+  flex-grow: 1;
+}
+#results .mapResult .content>* {
+  margin: 1ex 0px 1ex 0px;
+}
+#results .mapResult .content>*:first-child {
+  margin-top: 0px;
+}
+#results .mapResult .content>*:last-child {
+  margin-bottom: 0px;
+}
+#results .mapResult .content .resultTitle {
+  justify-content: flex-start;
+  align-items: center;
+  display: flex;
+}
+#results .mapResult .content .resultTitle .mapTitle {
+  font-weight: bold;
+  font-size: 2em;
+}
+#results .mapResult .content .resultTitle .version {
+  background-color: #382e32;
+  border-radius: 1vmin;
+  padding: 0.5em 0.75em;
+  margin-left: 1ex;
+  font-size: 1em;
+}
+#results .mapResult .content .resultTitle .version .mods {
+  justify-content: flex-start;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 1ex;
+  height: 1em;
+}
+#results .mapResult .content .resultTitle .version .mods img {
+  filter: drop-shadow(0px 0.5vmin 0.5vmin rgba(0,0,0,0.2));
+  user-select: none;
+  margin-right: 1ex;
+  height: 100%;
+}
+#results .mapResult .content .metadata span:first-child::before,
+#results .mapResult .content .pp .ppItem:first-child::before {
+  display: none;
+}
+#results .mapResult .content .metadata span::before,
+#results .mapResult .content .pp .ppItem::before {
+  margin: 0px 1ex 0px 1ex;
+  display: inline-block;
+  font-style: normal;
+  content: " | ";
+}
+#results .mapResult .content .metadata span {
+  display: inline-block;
+}
+#results .mapResult .content .metadata span img {
+  height: 1em;
+  width: 1em;
+}
+#results .mapResult .content .pp {
+  font-size: 1em;
+}
+#results .mapResult .content .pp .ppItem {
+  display: inline-block;
+}
+#results .mapResult .content .pp .ppItem:first-child {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #fc2;
 }
 #menus {
   position: fixed;

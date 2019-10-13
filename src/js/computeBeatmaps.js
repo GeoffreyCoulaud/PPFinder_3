@@ -1,3 +1,5 @@
+// TODO BPM
+
 const osu = require('ojsama');
 class MapMetadata{
 	constructor(title, artist, creator, version, beatmapSetID, beatmapID, maxCombo, titleUnicode = "", artistUnicode = ''){

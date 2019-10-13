@@ -13,7 +13,7 @@ osuVioletFonce = rgb(56, 46, 50)
 osuBorderRadius = 1vmin
 charbon = #252525
 rouge = #f44336
-gis = #373737
+gris = #373737
 
 *
 	box-sizing: border-box
@@ -118,6 +118,105 @@ body
 	min-height: 100vh
 	flex-grow: 1
 	z-index: 2
+
+	.mapResult
+		overlap = 1.25em
+
+		border-radius: osuBorderRadius 0px 0px osuBorderRadius
+		box-shadow: 0px 0.5em 0.5em rgba(0,0,0,0.3)
+		margin: '1em 0px 1em -%s' % overlap
+		width: 'calc(100% + %s)' % overlap
+		box-sizing: border-box
+		text-decoration: none
+		position: relative
+		color: white
+		display: flex
+		padding: 1em
+
+		.background
+			border-radius: inherit
+			position: absolute
+			overflow: hidden
+			height: 100%
+			z-index: -1
+			width: 100%
+			left: 0px
+			top: 0px
+
+			img
+				transform: translate(-50%, -50%)
+				position: absolute
+				min-height: 100%
+				min-width: 100%
+				left: 50%
+				top: 50%
+
+			.overlay
+				background-color: rgba(0,0,0,0.8)
+				position: absolute
+				height: 100%
+				width: 100%
+				left: 0px
+				top: 0px
+
+		.content
+			flex-grow: 1
+
+			&>*
+				margin: 1ex 0px 1ex 0px
+				&:first-child
+					margin-top: 0px
+				&:last-child
+					margin-bottom: 0px
+
+			.resultTitle
+				justify-content: flex-start
+				align-items: center
+				display: flex
+				.mapTitle
+					font-weight: bold
+					font-size: 2em
+				.version
+					background-color: osuVioletFonce
+					border-radius: osuBorderRadius
+					padding: 0.5em 0.75em
+					margin-left: 1ex
+					font-size: 1em
+					.versionName
+						//nuffin
+					.mods
+						justify-content: flex-start
+						display: inline-flex
+						align-items: center
+						margin-left: 1ex
+						height: 1em
+						img
+							filter: drop-shadow(0px 0.5vmin 0.5vmin rgba(0,0,0,0.2))
+							user-select: none
+							margin-right: 1ex
+							height: 100%
+			.metadata span, .pp .ppItem
+				&:first-child::before
+					display: none;
+				&::before
+					margin: 0px 1ex 0px 1ex
+					display: inline-block
+					font-style: normal
+					content: " | "
+			.metadata
+				span
+					display: inline-block
+					img
+						height: 1em
+						width: 1em
+			.pp
+				font-size: 1em
+				.ppItem
+					display: inline-block
+					&:first-child
+						font-weight: bold
+						font-size: 1.1em
+						color: osuJaune
 
 #menus
 	distance = 3vmin

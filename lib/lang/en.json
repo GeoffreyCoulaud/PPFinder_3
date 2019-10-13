@@ -39,6 +39,14 @@
 
 	"search-button": "Search",
 
+	"results-ar": "AR",
+	"results-cs": "CS",
+	"results-od": "OD",
+	"results-hp": "HP",
+	"results-duration": "Duration",
+	"results-bpm": "BPM",
+	"results-difficulty": "Difficulty",
+
 	"refresh-maps-desc": "Do you want to scan you local beatmaps ?\nThis process could take several minutes.",
 	"refresh-maps-accept": "Yes, select beatmaps folder",
 	"refresh-maps-refuse": "No",

@@ -33,6 +33,7 @@ html(lang="fr")
 
 		section#results
 			//- here will come search results
+			map-result(v-for="result in results" v-bind="result")
 
 		section#menus
 			//- Here are the floating buttons to change options and to load local files
