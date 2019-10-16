@@ -6,16 +6,16 @@ const popupOptions = Vue.component('popupOptions', {
 		visible: {
 			type: Boolean,
 			default: false
+		},
+		languages: {
+			type: Array
+		},
+		currentLanguage: {
+			type: String
 		}
 	},
 	data: function(){return{
 		type: 'popupOptions',
-		options: {
-			language: [
-				{name: "language-en", value: 'en', defaultSelected: true},
-				{name: "language-fr", value: 'fr'}
-			]
-		}
 	}},
 	template: `<div :class="['popup', type, visible?'visible':'']">
 		<div class="closeButton" @click="$emit('close')">
@@ -27,7 +27,7 @@ const popupOptions = Vue.component('popupOptions', {
 		<custom-switch class="input" :texts="[lang['option-link-type-http'], lang['option-link-type-direct']]"></custom-switch>
 
 		<h3>{{lang['option-language-title']}}</h3>
-		<custom-select name="languageSelect" class="input" :options="options.language" @changeValue="emitChangeLang"></custom-select>
+		<custom-select name="languageSelect" class="input" :options="languages.map((x)=>{return {'name':x.name, 'value':x.id, 'isNameRaw': true}})" @changeValue="emitChangeLang"></custom-select>
 
 	</div>`,
 	methods: {

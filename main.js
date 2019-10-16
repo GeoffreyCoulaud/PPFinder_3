@@ -98,6 +98,7 @@ ipcMain.on('readUserOptions', function(event){
 });
 
 ipcMain.on('languageChange', function(event, lang){
+	// Change the language to the given one
 	readUserOptions()
 	.then((data)=>{
 		data.currentLanguage = lang;
@@ -112,6 +113,7 @@ ipcMain.on('languageChange', function(event, lang){
 });
 
 ipcMain.on('searchBeatmaps', function(event, {id, criteria}){
+	// Search the beatmap database according to the given criteria
 	searchDB(criteria)
 	.then((results)=>{ 
 		event.reply('searchBeatmapsReply', {id: id, results : results}); 
@@ -588,3 +590,10 @@ function readUserOptions(){return new Promise((resolve, reject)=>{
 	.then(function(data){resolve(JSON.parse(data));})
 	.catch(function(err){reject(err);});
 });}
+
+function getLanguages(){return new Promise((resolve, reject)=>{
+	fsp.readFile('lib/lang/languages.json', 'utf8')
+	.then((data)=>{return JSON.parse(data);})
+	.then((obj)=>{resolve(obj);})
+	.catch(function(err){reject(err);})
+})}
