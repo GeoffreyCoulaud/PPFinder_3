@@ -26,7 +26,7 @@ html(lang="fr")
 			h3 {{lang['mods-title']}}
 			#mods
 				mod-reset
-				mod-option(v-for="mod in mods" v-bind:modName="mod" v-bind:name="'mod-'+mod")
+				mod-option(v-for="mod in mods" v-bind:modName="mod" v-bind:name="'mod-'+mod.toLowerCase()")
 
 			//- Search button
 			button-send
