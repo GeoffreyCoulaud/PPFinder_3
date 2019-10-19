@@ -335,7 +335,7 @@ function addMapToDB(map){return new Promise((resAdd, rejAdd)=>{
 	const baseTexts = [
 		'INSERT INTO beatmapsMetadata (beatmapID, beatmapSetID, creator, version, artist, title, artistUnicode, titleUnicode, maxCombo) VALUES ',
 
-		'INSERT INTO modsMetadata (beatmapID, mods, stars, ar, cs, od, hp, duration) VALUES ',
+		'INSERT INTO modsMetadata (beatmapID, mods, stars, ar, cs, od, hp, duration, bpm) VALUES ',
 		
 		'INSERT INTO accuraciesMetadata (beatmapID, mods, accuracy, pp) VALUES '
 	];
@@ -346,7 +346,7 @@ function addMapToDB(map){return new Promise((resAdd, rejAdd)=>{
 	// Add the values and text placeholders
 	queries[0].add([map.beatmapID, map.beatmapSetID, map.creator, map.version, map.artist, map.title, map.artistUnicode, map.titleUnicode, map.maxCombo]);
 	for (let mod of map.mods){
-		queries[1].add([map.beatmapID, mod.mods, mod.stars, mod.ar, mod.cs, mod.od, mod.hp, mod.duration]);
+		queries[1].add([map.beatmapID, mod.mods, mod.stars, mod.ar, mod.cs, mod.od, mod.hp, mod.duration, mod.bpm]);
 		for (let acc of mod.accs){
 			queries[2].add([map.beatmapID, mod.mods, acc.accuracy, acc.pp]);
 		}
@@ -371,6 +371,7 @@ function searchDB(criteria){return new Promise((resSearch, rejSearch)=>{
 		od: MinMaxFormat(0, 11, false),
 		hp: MinMaxFormat(0, 11, false),
 		stars: MinMaxFormat(0, 20, false),
+		bpm: MinMaxFormat(0, Number.MAX_SAFE_INTEGER, true),
 		duration: MinMaxFormat(0, Number.MAX_SAFE_INTEGER, true),
 		maxCombo: MinMaxFormat(0, Number.MAX_SAFE_INTEGER, true),
 		mods: {

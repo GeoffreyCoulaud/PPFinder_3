@@ -8,6 +8,7 @@
 	"slider-od": "OD",
 	"slider-hp": "HP",
 	"slider-duration": "Duration (in minutes)",
+	"slider-bpm": "Tempo (in BPM)",
 	"slider-combo": "Max combo",
 
 	"order-title": "Order",

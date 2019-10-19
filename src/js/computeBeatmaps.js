@@ -1,8 +1,7 @@
-// TODO BPM
-
 const osu = require('ojsama');
+
 class MapMetadata{
-	constructor(title, artist, creator, version, beatmapSetID, beatmapID, maxCombo, titleUnicode = "", artistUnicode = ''){
+	constructor(title, artist, creator, version, beatmapSetID, beatmapID, maxCombo, titleUnicode = '', artistUnicode = ''){
 		this.title = title;
 		this.titleUnicode = titleUnicode;
 		this.artist = artist;
@@ -21,7 +20,7 @@ class MapMetadata{
 }
 
 class ModMetadata{
-	constructor(mods, ar, cs, od, hp, stars, duration){
+	constructor(mods, ar, cs, od, hp, stars, duration, bpm){
 		this.mods = mods,
 		this.ar = ar;
 		this.cs = cs;
@@ -29,6 +28,7 @@ class ModMetadata{
 		this.hp = hp;
 		this.stars = stars;
 		this.duration = duration;
+		this.bpm = bpm;
 		this.accs = [];
 		this.addAcc = function(accMetadata){
 			this.accs.push(accMetadata);
@@ -79,6 +79,20 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 		let end = parseInt(matchs[2]);
 		return end - start;
 	}
+
+	// Get the map's base BPM
+	function getOsuBPM(text){
+		const r = new RegExp("\[TimingPoints\]\s+(?:[0-9\.]+),([0-9\.]+)", 'gm');
+		const matchs = r.exec(text);
+		if (matchs === null || typeof matchs[1] !== 'string'){ 
+			throw Error('Beatmap has no timing point to read BPM from'); 
+		}
+		let bpm;
+		bpm = parseFloat(matchs[1]); // ms/beat
+		bpm = 1/bpm; // beat/ms
+		bpm *= 1000; // beat/s
+		return bpm;
+	}
 	
 	// Detect bias regexps
 	const isHR = new RegExp('HR');
@@ -105,10 +119,12 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 
 	
 	let parser = new osu.parser();
-	let duration, map;
+	let duration, bpm, map;
 	try{
 		// Get the rough map duration in seconds
 		duration = getOsuDuration(fileData);
+		// Get the map's base BPM
+		bpm = getOsuBPM(fileData);
 		// Compute the global metadata for the map
 		map = parser.feed(fileData).map;
 	} catch (e){			
@@ -126,7 +142,7 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 		map.title, 
 		map.artist, 
 		map.creator, 
-		map.version, 
+		map.version,
 		beatmapSetID, 
 		beatmapID, 
 		map.max_combo(), 
@@ -143,7 +159,7 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 		let stars = new osu.diff().calc({'map':map, 'mods':modBits});
 
 		// If there is HR or EZ set, apply their multipliers
-		let bias = {ar: 1,cs: 1,od: 1,hp: 1,duration: 1};
+		let bias = {ar: 1,cs: 1,od: 1,hp: 1,duration: 1,bpm: 1};
 		if (isHR.test(combination)){
 			bias.ar = bias.od = bias.hp = 1.4;
 			bias.cs = 1.3;
@@ -154,9 +170,11 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 		// If a duration multiplier is set, apply it
 		if (isDT.test(combination)){
 			bias.duration = 0.67;
+			bias.bpm = 1.5;
 		} 
 		else if (isHT.test(combination)){
 			bias.duration = 1.33;
+			bias.bpm = 0.75;
 		}
 
 		// Create the modMetadata object needed
@@ -167,7 +185,8 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 			round2(map.od*bias.od), 
 			round2(map.hp*bias.hp), 
 			round2(stars.total),
-			round2(duration*bias.duration)
+			round2(duration*bias.duration),
+			Math.round(bpm*bias.bpm),
 		);
 
 		// Loop through all possible accuracies
