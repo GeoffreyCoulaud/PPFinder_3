@@ -3,13 +3,19 @@ const customSelectTitle = require('./customSelectTitle.vue');
 
 const customSelect = Vue.component('customSelect', {
 	props: {
+		singleValue: { type: Boolean, default: true },
+		isNameRaw: { type: Boolean, default: false }, // If this is false, names will be translated with the 'lang' object
 		options: { type: Array },
-		name: { type: String },
 		title: { type: String },
-		singleValue: { type: Boolean, default: true}
+		name: { type: String }
 	},
 	template: `<div :class="type">
-		<custom-select-option v-for="option in options" v-bind="option" @changeValue="valueChanged"></custom-select-option>
+		<custom-select-option 
+			v-for="option in options"
+			v-bind="option"
+			:isNameRaw="isNameRaw"
+			@changeValue="valueChanged"
+		></custom-select-option>
 	</div>`,
 	data: function(){return{
 		type: 'customSelect',

@@ -24,11 +24,23 @@ const popupOptions = Vue.component('popupOptions', {
 		<h2>{{lang['options-title']}}</h2>
 
 		<h3>{{lang['option-link-type-title']}}</h3>
-		<custom-switch class="input" :texts="[lang['option-link-type-http'], lang['option-link-type-direct']]"></custom-switch>
+		<custom-switch 
+			class="input" 
+			:texts="[
+				lang['option-link-type-http'], 
+				lang['option-link-type-direct']
+			]"
+		></custom-switch>
 
 		<h3>{{lang['option-language-title']}}</h3>
-		<custom-select name="languageSelect" class="input" :options="languages.map((x)=>{return {'name':x.name, 'value':x.id, 'isNameRaw': true}})" @changeValue="emitChangeLang"></custom-select>
-
+		<custom-select 
+			class="input" 
+			name="languageSelect" 
+			:options="languages"
+			:isNameRaw="true"
+			@changeValue="emitChangeLang"
+		></custom-select>
+			
 	</div>`,
 	methods: {
 		emitChangeLang: function(lang){
@@ -39,6 +51,9 @@ const popupOptions = Vue.component('popupOptions', {
 	components: {
 		customSelect: customSelect,
 		customSwitch: customSwitch
+	},
+	mounted: function(){
+		
 	}
 });
 

@@ -1,21 +1,11 @@
 const customSelectOption = Vue.component('customSelectOption', {
 	props: {
-		name: {
-			type: String
-		},
-		value: {
-			type: [String, Number] // string or positive integer
-		},
-		isNameRaw: {
-			type: Boolean,
-			default: false
-		},
-		defaultSelected: {
-			type: Boolean,
-			default: false
-		}
+		defaultSelected: {type: Boolean, default: false},
+		isNameRaw: {type: Boolean, default: false},
+		value: {type: [String, Number]},
+		name: {type: String}
 	},
-	template: `<div v-bind:class="[type, selected?'selected':'']" @click="select">
+	template: `<div :class="[type, selected?'selected':'']" @click="select">
 		<span class="name">{{ isNameRaw ? name : lang[name] }}</span>
 	</div>`,
 	data: function(){return{
