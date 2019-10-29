@@ -2,16 +2,24 @@
 // Database communication
 // ------------------------------------------------------------------------------------------
 
-function emptyDB(dbClient){return new Promise((resWipe, rejWipe)=>{
-	dbClient.query("TRUNCATE accuraciesmetadata")
-	.then(()=>dbClient.query("TRUNCATE beatmapsmetadata"))
-	.then(()=>dbClient.query("TRUNCATE modsmetadata"))
-	.then(()=>dbClient.query("OPTIMIZE TABLE accuraciesmetadata"))
-	.then(()=>dbClient.query("OPTIMIZE TABLE beatmapsmetadata"))
-	.then(()=>dbClient.query("OPTIMIZE TABLE modsmetadata"))
-	.then(()=>{ resWipe(); })
-	.catch((err)=>{ rejWipe(err); });
-})}
+async function emptyDB(dbClient){
+	// Get sql file
+	const wipeString     = require('../sql/emptyBaseTables.sql');
+	const optimizeString = require('../sql/optimizeBaseTables.sql');
+	
+	// Get individual queries in file
+	const wipeStrs     = wipeString.split(';');
+	const optimizeStrs = optimizeString.split(';');
+	const querystrings = wipeStrs.concat(optimizeStrs);
+
+	// Execute all queries
+	for (let q of queries){
+		await dbClient.query(elem);
+	}
+
+	// End function
+	return true;
+}
 
 function addMapToDB(map, dbClient){return new Promise((resAdd, rejAdd)=>{
 

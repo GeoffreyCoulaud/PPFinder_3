@@ -2,4 +2,3 @@
 DELETE FROM 'accuraciesMetadata';
 DELETE FROM 'beatmapsMetadata';
 DELETE FROM 'modsMetadata';
-VACUUM;

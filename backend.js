@@ -9,6 +9,7 @@ let dbClient;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
+const frontendFile = "./lib/html/frontend.html";
 let mainWindow;
 
 function createWindow (html, devtools = false) {
@@ -35,7 +36,7 @@ app.on('window-all-closed', function () {
 
 app.on('activate', function () {
 	// On macOS when there are no windows and the app is activated, create a new one
-	if (mainWindow === null){createWindow('lib/html/search.html', true);}
+	if (mainWindow === null){createWindow(frontendFile, true);}
 });
 
 // This method will be called when Electron has finished
@@ -59,7 +60,7 @@ async function start(){
 	createProtocol(scheme, basePath);
 	
 	// Create the window
-	createWindow('lib/html/index.html', true);
+	createWindow(frontendFile, true);
 }
 
 // ------------------------------------------------------------------------------------------
