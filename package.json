@@ -2,7 +2,7 @@
   "name": "ppfinder3",
   "version": "1.0.0",
   "description": "A local tillerino",
-  "main": "main.js",
+  "main": "backend.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "install-app-deps",

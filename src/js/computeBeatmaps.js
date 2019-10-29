@@ -20,8 +20,8 @@ class MapMetadata{
 }
 
 class ModMetadata{
-	constructor(mods, ar, cs, od, hp, stars, duration, bpm){
-		this.mods = mods,
+	constructor(modbits, ar, cs, od, hp, stars, duration, bpm){
+		this.modbits = modbits,
 		this.ar = ar;
 		this.cs = cs;
 		this.od = od;
@@ -95,10 +95,11 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 	}
 	
 	// Detect bias regexps
-	const isHR = new RegExp('HR');
+	/*const isHR = new RegExp('HR');
 	const isEZ = new RegExp('EZ');
 	const isDT = new RegExp('DT');
 	const isHT = new RegExp('HT');
+	*/
 	const isNotOnlyDigits = new RegExp('[^0-9]');
 
 	// Compute the map's beatmapID and beatmapSetID
@@ -160,26 +161,26 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 
 		// If there is HR or EZ set, apply their multipliers
 		let bias = {ar: 1,cs: 1,od: 1,hp: 1,duration: 1,bpm: 1};
-		if (isHR.test(combination)){
+		if (modBits & osu.modbits.hr){
 			bias.ar = bias.od = bias.hp = 1.4;
 			bias.cs = 1.3;
 		} 
-		else if (isEZ.test(combination)){
+		else if (modBits & osu.modbits.ez){
 			bias.ar = bias.cs = bias.od = bias.hp = 0.5;
 		}
 		// If a duration multiplier is set, apply it
-		if (isDT.test(combination)){
+		if (modBits & osu.modbits.dt || modBits & osu.modbits.nc){
 			bias.duration = 0.67;
 			bias.bpm = 1.5;
 		} 
-		else if (isHT.test(combination)){
+		else if (modBits & osu.modbits.ht){
 			bias.duration = 1.33;
 			bias.bpm = 0.75;
 		}
 
 		// Create the modMetadata object needed
 		let modMetadata = new ModMetadata(
-			combination, 
+			modBits, 
 			round2(map.ar*bias.ar), 
 			round2(map.cs*bias.cs), 
 			round2(map.od*bias.od), 

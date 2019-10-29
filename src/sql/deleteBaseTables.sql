@@ -1,5 +1,4 @@
 -- Deleting all base tables
-
-DROP TABLE accuraciesMetadata;
-DROP TABLE beatmapsMetadata;
-DROP TABLE modsMetadata;
+DROP TABLE IF EXISTS 'accuraciesmetadata';
+DROP TABLE IF EXISTS 'beatmapsmetadata';
+DROP TABLE IF EXISTS 'modsmetadata';

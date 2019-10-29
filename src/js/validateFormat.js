@@ -50,6 +50,7 @@ class StringFormat extends Format{
         this.size = size;
         this.match = function(obj){
             if (typeof obj !== 'string'){return false;}
+            if (this.size === null){return true;}
             if (typeof this.size === 'number'){
                 if (obj.length !== this.size){return false;}
             } else {
