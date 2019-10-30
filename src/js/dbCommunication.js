@@ -1,91 +1,142 @@
+
 // ------------------------------------------------------------------------------------------
 // Database communication
 // ------------------------------------------------------------------------------------------
 
-async function emptyDB(dbClient){
-	// Get sql file
-	const wipeString     = require('../sql/emptyBaseTables.sql');
-	const optimizeString = require('../sql/optimizeBaseTables.sql');
-	
-	// Get individual queries in file
-	const wipeStrs     = wipeString.split(';');
-	const optimizeStrs = optimizeString.split(';');
-	const querystrings = wipeStrs.concat(optimizeStrs);
+const {promises: fsp} = require('fs');
+const path = require('path');
 
+// * Internal function. Used to read file relatively from module.
+async function readFileRelative(p, opt){
+	let content = await fsp.readFile(path.join(__dirname, p), opt);
+	return content;
+}
+
+// * Empties the given database according to ../sql/emptyBaseTables.sql,
+// * then optimizes the database according to ../sql/optimizeBaseTables.sql
+async function emptyDB(dbClient){
+	// Get sql files
+	let wipeQueries = await readFileRelative('../sql/emptyBaseTables.sql', 'utf-8');
+	let optiQueries = await readFileRelative('../sql/optimizeBaseTables.sql', 'utf-8');
+	
+	// Remove the comments and split in individual queries
+	wipeQueries = wipeQueries.split(';').filter(x=>x!=='');
+	optiQueries = optiQueries.split(';').filter(x=>x!=='');
+	
+	// Regroup all of the queries in one array
+	const queries = wipeQueries.concat(optiQueries);
+	
 	// Execute all queries
-	for (let q of queries){
-		await dbClient.query(elem);
+	for (let query of queries){
+		await dbClient.query(query);
 	}
 
 	// End function
 	return true;
 }
 
+// * Adds the given map to the given database
 function addMapToDB(map, dbClient){return new Promise((resAdd, rejAdd)=>{
 
 	class InsertQuery {
-		constructor(){
-			this.text = '';
+		constructor(table, columns){
+			this.columns = columns;
+			this.table = table;
 			this.data = [];
-			this.n = 0;
-			this.add = function(d){
-				// Creation of the text placeholder
-				let t = '(';
-				for (let i = 0; i<d.length; i++){ 
-					if (i !== 0){ t +=','; }
-					t += '?';
+			
+			this.nRows = 0;
+			
+			this.constructionEnded = false;
+			
+			this.text = 'INSERT INTO ';
+			this.text += table;
+			this.text += '(';
+			for (let i = 0; i<columns.length; i++){
+				if(i>0){this.text+=',';}
+				this.text += columns[i];
+			}
+			this.text += ') VALUES ';
+
+			this.add = function(row){
+				if (row.length !== this.columns.length){
+					throw `Row has ${row.length} columns, ${this.columns.length} expected`;
 				}
-				t+= ')';
 
-				// Adding it to query text
-				if (this.n){ this.text += ',';}
-				this.text += t;
-
+				// Text placeholder construction
+				let rowPlaceholder = "";
+				if (this.nRows>0){rowPlaceholder += ', ';}
+				rowPlaceholder += '(';
+				for (let i=0; i<row.length; i++){
+					if (i>0){rowPlaceholder +=',';}
+					rowPlaceholder += '?';
+				}
+				rowPlaceholder += ')';
+				this.text += rowPlaceholder;
+				
 				// Adding the data to query data
-				this.data = this.data.concat(d);
+				for (let i=0; i<row.length; i++){
+					if (typeof row[i] === 'undefined'){
+						throw `[Row ${this.nRows}] undefined value at column ${i}`;
+					}
+					this.data.push(row[i]);
+				}
 
-				// Increment the counter of insert queries
-				this.n++;
+				// Increment the counter of insert subqueries
+				this.nRows++;
+			};
+			
+			this.endBuilding = function(){
+				if (!this.constructionEnded){
+					this.constructionEnded = true;
+					this.text += ';';
+				}
+			}
+
+			this.execute = function(dbClient){
+				return dbClient.execute(this.text, this.data);
 			}
 		}
 	}
 
-	let promises = [];
-
+	
 	// Build the queries
-	let queries = [new InsertQuery, new InsertQuery, new InsertQuery];
-	
-	// Add the base texts
-	const baseTexts = [
-		'INSERT INTO beatmapsMetadata (beatmapID, beatmapSetID, creator, version, artist, title, artistUnicode, titleUnicode, maxCombo) VALUES ',
-
-		'INSERT INTO modsMetadata (beatmapID, mods, stars, ar, cs, od, hp, duration, bpm) VALUES ',
-		
-		'INSERT INTO accuraciesMetadata (beatmapID, mods, accuracy, pp) VALUES '
+	let promisedQueries = [];
+	let queries = [
+		new InsertQuery(
+			'beatmapsmetadata', 
+			['beatmapID', 'beatmapSetID', 'creator', 'version', 'artist', 'title', 'artistUnicode', 'titleUnicode', 'maxCombo']
+		),
+		new InsertQuery(
+			'modsmetadata', 
+			['beatmapID', 'modbits', 'stars', 'ar', 'cs', 'od', 'hp', 'duration', 'bpm']
+		),
+		new InsertQuery(
+			'accuraciesmetadata', 
+			['beatmapID', 'modbits', 'accuracy', 'pp']
+		)
 	];
-	for (let i=0; i<queries.length; i++){
-		queries[i].text = baseTexts[i];
-	}
-	
-	// Add the values and text placeholders
+	// Build the queries
 	queries[0].add([map.beatmapID, map.beatmapSetID, map.creator, map.version, map.artist, map.title, map.artistUnicode, map.titleUnicode, map.maxCombo]);
 	for (let mod of map.mods){
-		queries[1].add([map.beatmapID, mod.mods, mod.stars, mod.ar, mod.cs, mod.od, mod.hp, mod.duration, mod.bpm]);
+		queries[1].add([map.beatmapID, mod.modbits, mod.stars, mod.ar, mod.cs, mod.od, mod.hp, mod.duration, mod.bpm]);
 		for (let acc of mod.accs){
-			queries[2].add([map.beatmapID, mod.mods, acc.accuracy, acc.pp]);
+			queries[2].add([map.beatmapID, mod.modbits, acc.accuracy, acc.pp]);
 		}
 	}
-	queries.forEach((val)=>{val.text+=";";});
+	queries.forEach(function finishTexts(query){
+		// End query construction
+		query.endBuilding();
+		// Send the query to be executed
+		promisedQueries.push( query.execute(dbClient) );
+	});
 
 	// Execute all the queries
-	for (let entry of Object.values(queries)){
-		promises.push( dbClient.execute(entry.text, entry.data) );
-	}
-	Promise.all(promises)
-	.then(()=>{ resAdd(); })
-	.catch((err)=>{ rejAdd(err); });
+	Promise.all(promisedQueries)
+	.then(resAdd)
+	.catch(rejAdd);
 })}
 
+// * Returns maps from the database matching the given criteria
 function searchDB(criteria, dbClient){return new Promise((resSearch, rejSearch)=>{
 	
 	// Modbits from ojsama

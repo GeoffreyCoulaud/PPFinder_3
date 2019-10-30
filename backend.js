@@ -1,5 +1,5 @@
 // Modules
-const {app, shell, BrowserWindow, ipcMain, dialog} = require('electron');
+const {app, shell, BrowserWindow, ipcMain} = require('electron');
 const fs                                           = require('fs');
 const fsp                                          = fs.promises;
 
@@ -43,14 +43,11 @@ app.on('activate', function () {
 app.on('ready', start);
 
 async function start(){
-	// Establish a new connection pool to the database
-	dbClient = await mysql.createPool({
+	// Establish a new connection to the database
+	dbClient = await mysql.createConnection({
 		host: 'localhost',
 		user: 'root',
-		database: 'ppfinder',
-		waitForConnections: true,
-		connectionLimit: 100,
-		queueLimit: 0
+		database: 'ppfinder'
 	});
 
 	// Create protocol to circumvent the "file://" limitations to load modules

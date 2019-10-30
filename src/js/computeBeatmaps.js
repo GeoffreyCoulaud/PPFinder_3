@@ -68,11 +68,10 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 
 	// Get the duration of the map
 	function getOsuDuration(text){
-		////const matchStart = /\[HitObjects\]\s*(?:[0-9]+,){2}([0-9]+)\S*\s/g;
-		////const matchEnd = /\[HitObjects\](?:[\s\S]*\n)+(?:[0-9]+,){2}([0-9]+)/g;
-		const matchStartEnd = /(?:\[HitObjects\]\s*)(?:[0-9]+,){2}([0-9]+)(?:[\s\S]*\n)+(?:[0-9]+,){2}([0-9]+)/g;
-		let matchs = text.match(matchStartEnd);
-		if (matchs === null || !(1 in matchs) || !(2 in matchs) ){
+		// *                   [HitObjects]         firstLine     sTime   ...rest...    lastLine      eTime
+		const matchStartEnd = /(?:\[HitObjects\]\s*)(?:[0-9]+,){2}([0-9]+)(?:[\s\S]*\n)+(?:[0-9]+,){2}([0-9]+)/m;
+		let matchs = text.match(matchStartEnd); // * [text, sTime, eTime] OR null
+		if (!matchs || !(1 in matchs) || !(2 in matchs)){
 			throw Error('Beatmap has less than 2 hit objects');
 		}
 		let start = parseInt(matchs[1]);
@@ -82,9 +81,9 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 
 	// Get the map's base BPM
 	function getOsuBPM(text){
-		const r = new RegExp("\[TimingPoints\]\s+(?:[0-9\.]+),([0-9\.]+)", 'gm');
-		const matchs = r.exec(text);
-		if (matchs === null || typeof matchs[1] !== 'string'){ 
+		const matchBPM = /\[TimingPoints\]\s+(?:[0-9\.]+),([0-9\.]+)/m;
+		const matchs = text.match(matchBPM); // * [text, bpm] OR null
+		if (!matchs || !(1 in matchs)){ 
 			throw Error('Beatmap has no timing point to read BPM from'); 
 		}
 		let bpm;
@@ -93,13 +92,7 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 		bpm *= 1000; // beat/s
 		return bpm;
 	}
-	
-	// Detect bias regexps
-	/*const isHR = new RegExp('HR');
-	const isEZ = new RegExp('EZ');
-	const isDT = new RegExp('DT');
-	const isHT = new RegExp('HT');
-	*/
+
 	const isNotOnlyDigits = new RegExp('[^0-9]');
 
 	// Compute the map's beatmapID and beatmapSetID
@@ -130,7 +123,7 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 		map = parser.feed(fileData).map;
 	} catch (e){			
 		// if we can't parse the file, skip it
-		throw Error(`Beatmap can't be parsed : ${e}`);
+		throw Error(`Beatmap can't be parsed : [${e}]`);
 	}
 
 	// If the map isn't in STD mode, skip it

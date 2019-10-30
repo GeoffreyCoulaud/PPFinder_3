@@ -1,4 +1,4 @@
 -- Empty base tables then clear unused space
-DELETE FROM 'accuraciesMetadata';
-DELETE FROM 'beatmapsMetadata';
-DELETE FROM 'modsMetadata';
+DELETE FROM `accuraciesmetadata`;
+DELETE FROM `beatmapsmetadata`;
+DELETE FROM `modsmetadata`;

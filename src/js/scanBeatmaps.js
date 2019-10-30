@@ -10,8 +10,11 @@
 
 // if an error happens, it is console.error-ed
 
-const rra = require('recursive-readdir-async');
-const {promises: fsp}  = require('fs');
+const {addMapToDB, emptyDB} = require('./dbCommunication.js');
+const osuMetadataGetter     = require('./computeBeatmaps.js');
+const {promises: fsp}       = require('fs');
+const {dialog}              = require('electron');
+const rra                   = require('recursive-readdir-async');
 
 function scanBeatmaps(event, dbClient){
     /*
@@ -21,7 +24,6 @@ function scanBeatmaps(event, dbClient){
     */
 
     // Import database communication functions
-    const {addMapToDB, emptyDB} = require('./dbCommunication.js');
 
 	// Default path to put the user in where searching Songs folder
 	const winDefaultOsuPath = "C:\\Program Files (x86)\\osu!\\Songs";
@@ -43,7 +45,7 @@ function scanBeatmaps(event, dbClient){
 	}
 
 	// Ask for a directory to search
-	dialog.showOpenDialog(mainWindow, {defaultPath: winDefaultOsuPath, properties: ['openDirectory']})
+	dialog.showOpenDialog({defaultPath: winDefaultOsuPath, properties: ['openDirectory']})
 	.then(({canceled, filePaths})=>{return new Promise((resolve, reject)=>{
 		if      (canceled)         {reject('User has cancelled the request');}
 		else if (!filePaths.length){reject('No .osu files in directory');}
@@ -62,7 +64,7 @@ function scanBeatmaps(event, dbClient){
 		})
 		// Map the files so that only the full paths remain
 		.then((files)=>resolve(files.map(x=>x.fullname)))
-		.catch((err)=> reject('Error during directories scanning', err));
+		.catch((err)=> reject(`Error during directories scanning [${err}]`));
 	})})
 
 	// Empty the database
@@ -80,11 +82,11 @@ function scanBeatmaps(event, dbClient){
 		done.database.max = filesList.length;
 
 		// Start to parse the files
-		doFile(0, filesList, resolve, handleError);
+		doFile(0, filesList, resolve);
 		
 		// doFile is a recursive function to circumvent the open files limit
 		// it gets a file's content, then, at the same time parses the file data and starts the next file
-		function doFile(index, filesList, callback = resolve, handleError = console.error){
+		function doFile(index, filesList, callback = resolve){
 			// Read the file
 			new Promise((localResolve, localReject)=>{
 				fsp.readFile(filesList[index], 'utf8')
@@ -96,26 +98,28 @@ function scanBeatmaps(event, dbClient){
 					done.read.failed++;
 					done.compute.max--;
 					done.database.max--;
-					localReject('Error during file reading', err);
+					localReject(`Error during file reading [${err}]`);
 				})
 				.finally(()=>sendState());
 			})
 
 			// Get the osu metadata from file contents
-			.then((fileData)=>{ return new Promise((localResolve, localReject)=>{
-				// Compute the metadata
-				osuMetadataGetter.metadataFromString(fileData)
-				.then((metadata)=>{
-					done.compute.progression++;
-					localResolve(metadata);
+			.then((fileData)=>{
+				return new Promise((localResolve, localReject)=>{
+					// Compute the metadata
+					osuMetadataGetter.metadataFromString(fileData)
+					.then((metadata)=>{
+						done.compute.progression++;
+						localResolve(metadata);
+					})
+					.catch((err)=>{
+						done.compute.failed++;
+						done.database.max--;
+						localReject(`Error during file data parsing [${err}]`);
+					})
+					.finally(sendState);
 				})
-				.catch((err)=>{
-					done.compute.failed++;
-					done.database.max--;
-					localReject('Error during file data parsing', err);
-				})
-				.finally(()=>sendState());
-			})})
+			})
 
 			// Send to be added to the database
 			.then((metadata)=>{return new Promise((localResolve, localReject)=>{
@@ -126,15 +130,19 @@ function scanBeatmaps(event, dbClient){
 				})
 				.catch((err)=>{
 					done.database.failed++;
-					localReject(err)
+					localReject(`Error during database adding [${err}]`);
 				})
 				.finally(()=>{
 					sendState();
 				});
 			})})
 			
-			// console error the possible errors occuring
-			.catch(handleError)
+			// Handle all the errors
+			.catch((err)=>{
+				console.error(err);
+			})
+
+			// > What's next ?
 			.finally(()=>{
 				// Test if it was the last addition to the database
 				if (done.database.progression + done.database.failed === done.database.max){
@@ -146,16 +154,11 @@ function scanBeatmaps(event, dbClient){
 				}
 			});
 		}
-
-		// If an error appears here, console.error it since it's not important
-		function handleError(info, err){
-			console.error(info, typeof err, err);
-		}
 	});})
 
 	// Inform the user that it's done
 	.then(()=>{
-		done.forceHide = true;
+		done.finished = true;
 		sendState();
 		// Log the success
 		console.log('Beatmap processing finished !');
@@ -166,7 +169,7 @@ function scanBeatmaps(event, dbClient){
 		// In case an unexpected error happens, console.error it
 		console.error(err);
 		// Then close the loading bar
-		done.forceHide = true;
+		done.finished = true;
 		sendState();
 	});
 }
