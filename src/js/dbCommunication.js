@@ -138,75 +138,34 @@ function addMapToDB(map, dbClient){return new Promise((resAdd, rejAdd)=>{
 
 // * Returns maps from the database matching the given criteria
 function searchDB(criteria, dbClient){return new Promise((resSearch, rejSearch)=>{
-	
+	/*
+	* criteria : a criteria formatted as expected in backend.js
+	* dbClient : a usable database client
+	*/
+
 	// Modbits from ojsama
 	const {modbits} = require('ojsama');
-	
-	// Criteria format expected from user
-	// User input format validator
-	const validateFormat = require('./src/js/validateFormat.js');
-	class MinMaxFormat extends validateFormat.Format{
-		constructor(min, max, forceInt = false){
-			super('object');
-			this.min = new NumberFormat(0, max, forceInt);
-			this.max = new NumberFormat(min, Number.MAX_SAFE_INTEGER, forceInt);
-			this.match = function(obj){
-				if (typeof obj.min !== 'number'){return false;}
-				if (typeof obj.max !== 'number'){return false;}
-				return this.min.match(obj.min) && this.max.match(obj.max);
-			}
-		}
-	}
-	const criteriaFormat = {
-		pp       : MinMaxFormat(0, 1e5, false),
-		ar       : MinMaxFormat(0, 11, false),
-		cs       : MinMaxFormat(0, 11, false),
-		od       : MinMaxFormat(0, 11, false),
-		hp       : MinMaxFormat(0, 11, false),
-		stars    : MinMaxFormat(0, 20, false),
-		bpm      : MinMaxFormat(0, Number.MAX_SAFE_INTEGER, true),
-		duration : MinMaxFormat(0, Number.MAX_SAFE_INTEGER, true),
-		maxCombo : MinMaxFormat(0, Number.MAX_SAFE_INTEGER, true),
-		mods     : {
-			include: validateFormat.StringFormat(null),
-			exclude: validateFormat.StringFormat(null)
-		},
-		sort : {
-			id     : validateFormat.NumberFormat(0, sorts.length-1),
-			desc   : validateFormat.BoolFormat()
-		}
-	}
+
 	
 	// If null sent, return empty array
 	if (criteria === null){
 		console.warn('Research criteria null');
 		resSearch([]);
-	} 
-	// Validate the criteria properties
-	else if ( !validateFormat.validate(criteria, criteriaFormat) ){
-		throw new Error('Invalid search criterias');
 	}
-
+	
 	// Build the masks for mod inclusion / exclusion
 	const includeModbits = modbits.from_string(criteria.mods.include);
 	const excludeModbits = modbits.from_string(criteria.mods.exclude);
-
+	
 	// Pagination system
 	// ! These must be escaped to be integers
 	const offset = 0;
 	const limit = 50;
-
+	
 	// Sorting system
 	const sortPrefix = 'ORDER BY ';
-	const sorts = [
-		'acc100.pp',                // Sort by PP
-		'm.stars',                  // Sort by Stars
-		'acc100.pp / m.stars',      // Sort by PP / Stars
-		'b.maxCombo',               // Sort by Combo
-		'acc100.pp / b.maxCombo',   // Sort by PP / Note
-		'm.duration',               // Sort by Duration
-		'acc100.pp / m.duration'    // Sort by PP / Minute
-	];
+	// Search sorts
+	const sorts = require('./searchSorts.js');
 	if (!(criteria.sort.id) in sorts){ 
 		// Handle non existing sorts
 		console.warn('Non existing sort requested', criteria.sort.id);
@@ -220,12 +179,12 @@ function searchDB(criteria, dbClient){return new Promise((resSearch, rejSearch)=
 		SELECT
 			CONCAT(
 				'[',
-					'[100:', acc100.pp, '],',
-					'[99:',  acc99.pp,  '],',
-					'[98:',  acc98.pp,  '],',
-					'{95:',  acc95.pp,  ']',
-				']',
-			) as pp
+					'{100:', acc100.pp, '},',
+					'{99:',  acc99.pp,  '},',
+					'{98:',  acc98.pp,  '},',
+					'{95:',  acc95.pp,  '}',
+				']'
+			) as pp,
 
 			m.modbits as modbits,
 			m.duration as duration,
@@ -246,22 +205,22 @@ function searchDB(criteria, dbClient){return new Promise((resSearch, rejSearch)=
 		FROM (
 			SELECT 
 				beatmapID, 
-				mods, 
+				modbits, 
 				pp 
 			FROM 
 				accuraciesmetadata as acc100
 			WHERE 
 				acc100.accuracy = 100 and 
-				acc100.pp BETWEEN ? AND ? 
-				m.modbits & ? and
-				NOT m.modbits & ?
+				acc100.pp BETWEEN ? AND ? and
+				acc100.modbits & ? and
+				NOT acc100.modbits & ?
 		) as acc100
 
-		/* Données spécifiques au mod */
+		-- mod data
 
 		INNER JOIN modsmetadata as m
 		ON 
-			m.modBits = acc100.modBits and 
+			m.modbits = acc100.modbits and 
 			m.beatmapID = acc100.beatmapID and
 			m.ar BETWEEN ? AND ? and
 			m.cs BETWEEN ? AND ? and
@@ -270,38 +229,38 @@ function searchDB(criteria, dbClient){return new Promise((resSearch, rejSearch)=
 			m.stars BETWEEN ? AND ? and
 			m.duration BETWEEN ? AND ?
 		
-		/* Données du .osu */
+		-- .osu data
 
 		INNER JOIN beatmapsmetadata as b
 		ON 
 			b.beatmapID = acc100.beatmapID and
 			b.maxCombo BETWEEN ? AND ?
 		
-		/* Autres accuracies pour le même score*/
+		-- Other accuracies for this score
 
 		INNER JOIN accuraciesmetadata as acc99
 		ON 
 			acc99.accuracy = 99 and 
 			acc100.beatmapID = acc99.beatmapID and 
-			acc100.mods = acc99.mods
+			acc100.modbits = acc99.modbits
 
 		INNER JOIN accuraciesmetadata as acc98
 		ON 
 			acc98.accuracy = 98 and 
 			acc100.beatmapID = acc98.beatmapID and 
-			acc100.mods = acc98.mods
+			acc100.modbits = acc98.modbits
 
 		INNER JOIN accuraciesmetadata as acc95
 		ON 
 			acc95.accuracy = 95 and 
 			acc100.beatmapID = acc95.beatmapID and 
-			acc100.mods = acc95.mods
+			acc100.modbits = acc95.modbits
 
-		/* Sorting */
+		-- Sorting
 		
 		${sort}
 
-		/* Pagination */
+		-- Pagination
 
 		LIMIT ${limit} OFFSET ${offset}
 	`;
@@ -329,11 +288,16 @@ function searchDB(criteria, dbClient){return new Promise((resSearch, rejSearch)=
 		criteria.duration.min, criteria.duration.max,
 		criteria.maxCombo.min, criteria.maxCombo.max,
 	])
-	.then((rows)=>{
+	.then(([rows, fields])=>{
+		console.log(rows.length+" résultats.");
+		console.log(fields.length+" champs.");
+		if (rows.length === 0){return rows;}
 		// Format the results
 		rows = rows.map(row=>{
 			// Turn pp into a Map
-			row.pp = new Map(JSON.parse(row.pp)); 
+			console.log(row, row.pp);
+			row.pp = JSON.parse(row.pp);
+			row.pp = new Map(row.pp); 
 			// Format duration to be readable
 			row.durationHuman = secToMinSec(row.duration); 
 			delete row.duration;

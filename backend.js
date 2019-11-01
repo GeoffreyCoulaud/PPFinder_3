@@ -12,20 +12,55 @@ let dbClient;
 const frontendFile = "./lib/html/frontend.html";
 let mainWindow;
 
+// Criteria format validation for database search
+const DBSorts = require('./src/js/searchSorts.js');
+const val = require('./src/js/validateFormat.js');
+class MinMaxFormat extends val.Format{
+	constructor(min, max, forceInt = false){
+		super('object');
+		this.min = new val.NumberFormat(0, max, forceInt);
+		this.max = new val.NumberFormat(min, Number.MAX_SAFE_INTEGER, forceInt);
+		this.match = function(obj){
+			if (typeof obj.min !== 'number'){return false;}
+			if (typeof obj.max !== 'number'){return false;}
+			return this.min.match(obj.min) && this.max.match(obj.max);
+		}
+	}
+}
+const searchCriteriaFormat = {
+	pp      : new MinMaxFormat(0, 1e5, false),
+	ar      : new MinMaxFormat(0, 11, false),
+	cs      : new MinMaxFormat(0, 11, false),
+	od      : new MinMaxFormat(0, 11, false),
+	hp      : new MinMaxFormat(0, 11, false),
+	stars   : new MinMaxFormat(0, 20, false),
+	bpm     : new MinMaxFormat(0, Number.MAX_SAFE_INTEGER, true),
+	duration: new MinMaxFormat(0, Number.MAX_SAFE_INTEGER, true),
+	maxCombo: new MinMaxFormat(0, Number.MAX_SAFE_INTEGER, true),
+	mods: {
+		include: new val.StringFormat(null),
+		exclude: new val.StringFormat(null)
+	},
+	sort: {
+		id  : new val.NumberFormat(0, DBSorts.length-1),
+		desc: new val.BoolFormat()
+	}
+}
+
 function createWindow (html, devtools = false) {
 	// Create the browser window.
 	mainWindow = new BrowserWindow({width: 800, height: 600, webPreferences: {nodeIntegration: true}});
-	// Load the index.html of the app.
 	mainWindow.loadFile(html); 
-	// Open target=_blank links in default os browser
 	mainWindow.webContents.on('new-window', function(event, url){
+		// Open urls in OS default browser
 		event.preventDefault();
 		shell.openExternal(url);
 	});
 	// Open the DevTools 
 	if (devtools){mainWindow.webContents.openDevTools();}
+
 	// Emitted when the window is closed.
-	mainWindow.on('closed', function () {mainWindow = null;});
+	mainWindow.on('closed', ()=>{mainWindow = null;});
 }
 
 // Quit when all windows are closed.
@@ -41,7 +76,6 @@ app.on('activate', function () {
 
 // This method will be called when Electron has finished
 app.on('ready', start);
-
 async function start(){
 	// Establish a new connection to the database
 	dbClient = await mysql.createConnection({
@@ -71,12 +105,21 @@ ipcMain.on('scanBeatmaps', (event)=>{
 
 const {searchDB} = require('./src/js/dbCommunication.js');
 ipcMain.on('searchBeatmaps', function(event, {id, criteria}){
-	// Search the beatmap database according to the given criteria
-	searchDB(criteria, dbClient)
-	.then((results)=>{ 
-		event.reply('searchBeatmapsReply', {id: id, results : results}); 
-	})
-	.catch((err)=>{ console.error(err); });
+	// Validate the criteria format
+	if (val.validate(criteria, searchCriteriaFormat)){
+		// Search the beatmap database according to the given criteria
+		searchDB(criteria, dbClient)
+		.then((results)=>{ 
+			event.reply('searchBeatmapsReply', {id: id, results : results}); 
+		})
+		.catch((err)=>{ console.error(err); });
+	} else {
+		// Wrong criteria format, don't search
+		console.log('Error with criteria format');
+		//console.log(criteria);
+		//console.log(searchCriteriaFormat);
+	}
+
 });	
 
 ipcMain.on('readUserOptions', function(event){

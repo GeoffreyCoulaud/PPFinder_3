@@ -45,12 +45,12 @@ class NumberFormat extends Format{
     }
 }
 class StringFormat extends Format{
-    constructor(size){
+    constructor(size = null){
         super('string');
         this.size = size;
         this.match = function(obj){
             if (typeof obj !== 'string'){return false;}
-            if (this.size === null){return true;}
+            if (this.size === null)     {return true;}
             if (typeof this.size === 'number'){
                 if (obj.length !== this.size){return false;}
             } else {
@@ -114,11 +114,15 @@ function validate(obj, model){
     // If format is not a Format
     else {
         // Go through the properties (recusively if needed)
-        for (let {key, subFormat} of Object.entries(model)){
-            // If key doesn't exist in obj, return false
-            if (typeof obj[key] === 'undefined'){return false;}
-            // If key exists, validate its content to the subFormat
-            return validate(obj[key], subFormat);
+        for (let [key, subFormat] of Object.entries(model)){
+            if (obj.hasOwnProperty(key)){
+                // If key exists, validate its content to the subFormat
+                return validate(obj[key], subFormat);
+            } else {
+                // If key doesn't exist in obj, return false
+                console.log('Key missing in object: "'+key+'"');
+                return false;
+            }
         }
     } 
 }
