@@ -76,20 +76,22 @@ function metadataFromString(fileData){return new Promise(function(resolve, rejec
 		}
 		let start = parseInt(matchs[1]);
 		let end = parseInt(matchs[2]);
-		return end - start;
+		let durationSeconds = Math.round((end - start)/1000);
+		return durationSeconds;
 	}
 
 	// Get the map's base BPM
 	function getOsuBPM(text){
+		// TODO Fix bpm, truncated to only int
 		const matchBPM = /\[TimingPoints\]\s+(?:[0-9\.]+),([0-9\.]+)/m;
 		const matchs = text.match(matchBPM); // * [text, bpm] OR null
 		if (!matchs || !(1 in matchs)){ 
 			throw Error('Beatmap has no timing point to read BPM from'); 
 		}
 		let bpm;
-		bpm = parseFloat(matchs[1]); // ms/beat
-		bpm = 1/bpm; // beat/ms
-		bpm *= 1000; // beat/s
+		bpm  = parseFloat(matchs[1]); // ms/beat
+		bpm /= 1000; // s/beat
+		bpm  = 1/bpm; // beat/s
 		return bpm;
 	}
 

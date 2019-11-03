@@ -14,7 +14,7 @@ let mainWindow;
 
 // Criteria format validation for database search
 const DBSorts = require('./src/js/searchSorts.js');
-const val = require('./src/js/validateFormat.js');
+const val     = require('./src/js/validateFormat.js');
 class MinMaxFormat extends val.Format{
 	constructor(min, max, forceInt = false){
 		super('object');
@@ -105,21 +105,20 @@ ipcMain.on('scanBeatmaps', (event)=>{
 
 const {searchDB} = require('./src/js/dbCommunication.js');
 ipcMain.on('searchBeatmaps', function(event, {id, criteria}){
+	console.log('Searching database...');
 	// Validate the criteria format
 	if (val.validate(criteria, searchCriteriaFormat)){
 		// Search the beatmap database according to the given criteria
 		searchDB(criteria, dbClient)
 		.then((results)=>{ 
-			event.reply('searchBeatmapsReply', {id: id, results : results}); 
+			event.reply('searchBeatmapsReply', {id: id, results: results}); 
+			console.log('Searching finished !');
 		})
 		.catch((err)=>{ console.error(err); });
 	} else {
-		// Wrong criteria format, don't search
+		// Wrong criteria format, don't search.
 		console.log('Error with criteria format');
-		//console.log(criteria);
-		//console.log(searchCriteriaFormat);
 	}
-
 });	
 
 ipcMain.on('readUserOptions', function(event){

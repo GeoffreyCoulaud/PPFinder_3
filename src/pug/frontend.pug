@@ -19,7 +19,7 @@ html(lang="fr")
 			h3 {{lang['order-title']}}
 			custom-select(:name="'order'" :options="orderOptions")
 			//- Acending or descending order
-			custom-switch(:name="'order-way'" :texts="[lang['order-way-asc'], lang['order-way-desc']]")
+			custom-switch(:name="'order-way'" :defaultValue="true" :texts="[lang['order-way-asc'], lang['order-way-desc']]")
 			
 
 			//- Mods

@@ -23,7 +23,7 @@ CREATE TABLE `beatmapsmetadata` (
 CREATE TABLE `modsmetadata` (
     `ID`        int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT,
     `beatmapID` int(11) NOT NULL,
-    `modbits`   bit(10) NOT NULL,
+    `modbits`   bit(16) NOT NULL,
     `stars`     float   DEFAULT NULL,
     `ar`        float   DEFAULT NULL,
     `cs`        float   DEFAULT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE `accuraciesmetadata` (
     `ID`        int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT,
     `beatmapID` int(11) NOT NULL,
     `accuracy`  int(7)  NOT NULL,
-    `modbits`   bit(10) DEFAULT NULL,
+    `modbits`   bit(16) DEFAULT NULL,
     `pp`        float   DEFAULT NULL
 );
 

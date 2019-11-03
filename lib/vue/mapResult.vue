@@ -16,7 +16,7 @@ const mapResult = Vue.component('mapResult', {
 		title        : {type: String},
 		titleUnicode : {type: String},
 		mods         : {type: Array},
-		pp           : {type: Map}
+		pp           : {type: Array}
 	},
 	data: function(){return{
 		type: 'mapResult'
@@ -40,9 +40,9 @@ const mapResult = Vue.component('mapResult', {
 		<div class="content">
 			<div class="resultTitle">
 				<div class="mapTitle">
-					<span class="artist">  {{ artist + (!!artistUnicode ? (" / "+artistUnicode) : '') }} </span>
+					<span class="artist">  {{artist}} </span>
 					-
-					<span class="title"> {{title  + (!!titleUnicode  ? (" / "+titleUnicode)  : '')}} </span>
+					<span class="title"> {{title}} </span>
 				</div>
 
 				<div class="version">
@@ -56,16 +56,16 @@ const mapResult = Vue.component('mapResult', {
 			<div class="metadata">
 				<span>
 					<img src="../img/star.svg" alt="duration" />
-					{{stars}}
+					{{stars.toFixed(2)}}
 				</span>
 				<span>
 					<img src="../img/time.svg" alt="duration" />
 					{{durationHuman}}
 				</span>
-				<span>{{lang['results-ar']}} {{ar}} </span>
-				<span>{{lang['results-cs']}} {{cs}} </span>
-				<span>{{lang['results-od']}} {{od}} </span>
-				<span>{{lang['results-hp']}} {{hp}} </span>
+				<span>{{lang['results-ar']}} {{ar.toFixed(2)}} </span>
+				<span>{{lang['results-cs']}} {{cs.toFixed(2)}} </span>
+				<span>{{lang['results-od']}} {{od.toFixed(2)}} </span>
+				<span>{{lang['results-hp']}} {{hp.toFixed(2)}} </span>
 			</div>
 
 			<div class="pp">
