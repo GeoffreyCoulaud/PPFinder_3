@@ -1,6 +1,7 @@
 const buttonSend = Vue.component('buttonSend', {
     data: function(){return{
-        type: 'buttonSend'
+        type: 'buttonSend',
+        role: 'button'
     }},
     template: `<div :class="['button', type]" @click="search">
         <span>{{lang['search-button']}}</span>

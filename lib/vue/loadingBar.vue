@@ -14,7 +14,8 @@ const loadingBar = Vue.component('loadingBar', {
         }
     },
     data: function(){return{
-        type: "loadingBar"
+        type: 'loadingBar',
+        role: 'info'
     }},
     template : `<div :class="[type]">
         <div class="texts">

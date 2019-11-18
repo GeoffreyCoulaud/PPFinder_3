@@ -14,7 +14,8 @@ const customSwitch = Vue.component('customSwitch', {
 	},
 	data: function(){return{
 		value: this.defaultValue, // If true, set to normal order. If false, set to inverted order
-		type: 'customSwitch'
+		type: 'customSwitch',
+		role: 'input'
 	}},
 	template: `<div :class="type">
 		<span>{{texts[0]}}</span>

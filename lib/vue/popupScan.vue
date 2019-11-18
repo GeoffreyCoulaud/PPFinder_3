@@ -9,6 +9,7 @@ const popupScan = Vue.component('popupScan', {
 	},
 	data: function(){return{
         type: 'popupScan',
+        role: 'popup',
         progression: {
             discover: {progression: 0},
             read: {progression: 0, failed: 0, max: 0},

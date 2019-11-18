@@ -1,6 +1,7 @@
 const modReset = Vue.component('modReset', {
 	data: function(){return{
-		type: 'modReset'
+		type: 'modReset',
+		role: 'button'
 	}},
 	template: 
 		`<div :class="['mod', type]" @click="reset">

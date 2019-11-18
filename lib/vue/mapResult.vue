@@ -19,7 +19,8 @@ const mapResult = Vue.component('mapResult', {
 		pp           : {type: Array}
 	},
 	data: function(){return{
-		type: 'mapResult'
+		type: 'mapResult',
+		role: 'result'
 	}},
 	template : 
 	`<a 

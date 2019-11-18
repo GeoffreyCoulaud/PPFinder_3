@@ -233,11 +233,53 @@ function buildSearchQuery(criteria, sort, offset, limit){
 
 	return query;
 }
-function searchDB(criteria, dbClient){return new Promise((resSearch, rejSearch)=>{
+
+function buildRowNumberQuery(criteria){
+	const query = SQL`SELECT
+		count(*) as nRows
+	FROM
+		accuraciesmetadata as acc100
+	INNER JOIN modsmetadata as m
+	ON 
+		m.modbits = acc100.modbits and 
+		m.beatmapID = acc100.beatmapID and
+		m.ar BETWEEN ${criteria.ar.min} AND ${criteria.ar.max} and
+		m.cs BETWEEN ${criteria.cs.min} AND ${criteria.cs.max} and
+		m.od BETWEEN ${criteria.od.min} AND ${criteria.od.max} and
+		m.hp BETWEEN ${criteria.hp.min} AND ${criteria.hp.max} and
+		m.stars BETWEEN ${criteria.stars.min} AND ${criteria.stars.max} and
+		m.duration BETWEEN ${criteria.duration.min} AND ${criteria.duration.max}
+	INNER JOIN beatmapsmetadata as b
+	ON 
+		b.beatmapID = acc100.beatmapID and
+		b.maxCombo BETWEEN ${criteria.maxCombo.min} AND ${criteria.maxCombo.max}
+	WHERE 
+		acc100.accuracy = 100 and 
+		acc100.pp BETWEEN ${criteria.pp.min} AND ${criteria.pp.max} and
+		(acc100.modbits & ${criteria.mods.include} = ${criteria.mods.include}) and
+		(NOT acc100.modbits & ${criteria.mods.exclude})
+	LIMIT 1
+	`;
+
+	return query;
+}
+
+async function searchDB(criteria, page, dbClient){
 	/*
 	* criteria : a criteria formatted as expected in backend.js
+	* page : a page number starting from 0
 	* dbClient : a usable database client
+
+	* Returns :
+	[
+		[0] = rows : a list of rows returned by the database
+		[1] = page : the current page
+		[2] = maxPage : the maximum page number
+		[3] = resPerPage : the number of rows per page
+	]
 	*/
+
+	let rows, fields;
 	
 	// If null sent, return empty array
 	if (criteria === null){
@@ -250,52 +292,49 @@ function searchDB(criteria, dbClient){return new Promise((resSearch, rejSearch)=
 	criteria.mods.exclude = modbits.from_string(criteria.mods.exclude);
 	
 	// Pagination system
-	// ! These must be escaped to be integers
-	const offset = 0;
-	const limit = 50;
+	// Get the maximum number of pages
+	const nRowsQuery   = buildRowNumberQuery(criteria);
+	[rows, fields]     = await dbClient.execute(nRowsQuery);
+	let nRes           = rows[0]['nRows'];
+	const resPerPage   = 50;
+	const maxPage       = Math.ceil(nRes/resPerPage);
+	// Get only an existing page number
+	page = Math.min(maxPage, Math.max(page,0)); 
+	const offset = page*resPerPage;
+	const limit  = resPerPage;
 	
 	// Sorting system
 	const sortPrefix = 'ORDER BY ';
-	const sorts = require('./searchSorts.js');
+	const sorts      = require('./searchSorts.js');
 	if (!(criteria.sort.id in sorts)){ 
 		// Handle non existing sorts
 		console.warn('Non existing sort requested', criteria.sort.id);
 		criteria.sort.id = 0; 
 	} 
-	const sortSuffix = (criteria.sort.desc) ? 'DESC' : 'ASC';
-	const sort = ` ${sortPrefix} ${sorts[criteria.sort.id]} ${sortSuffix} `;
+	const sortSuffix = (criteria.sort.desc) ? 'DESC': 'ASC';
+	const sort       = ` ${sortPrefix} ${sorts[criteria.sort.id]} ${sortSuffix} `;
 
-	// Build the query
-	const query = buildSearchQuery(criteria, sort, offset, limit);
-
-	// Execute the query
-	dbClient.execute(query)
-	.then(([rows, fields])=>{
-
-		// Format the results
-		if (rows.length){
-			rows.forEach((row)=>{})
-			rows = rows.map(row=>{
-				// Turn pp into a Map
-				row.pp = JSON.parse(row.pp); 
-				// Format duration to be readable
-				row.durationHuman = secToMinSec(row.duration); 
-				delete row.duration;
-				// Add mod string from modbits
-				let m = modbits.string(row.modbits.readUInt16BE());
-				row.mods = explodeStr(m, 2);
-				delete row.modbits;
-				return row;
-			});
-		}
-
-		// Resolve with the rows
-		resSearch(rows);
-	})
-	.catch((err)=>{
-		rejSearch(err);
-	});
-})}
+	// Search
+	const searchQuery = buildSearchQuery(criteria, sort, offset, limit);
+	[rows, fields] = await dbClient.execute(searchQuery)
+	
+	// Format the results
+	if (rows.length){
+		rows = rows.map(row=>{
+			// Turn pp into a Map
+			row.pp = JSON.parse(row.pp); 
+			// Format duration to be readable
+			row.durationHuman = secToMinSec(row.duration); 
+			delete row.duration;
+			// Add mod string from modbits
+			let m = modbits.string(row.modbits.readUInt16BE());
+			row.mods = explodeStr(m, 2);
+			delete row.modbits;
+			return row;
+		});
+		return [rows, page, maxPage, resPerPage];
+	}
+}
 
 module.exports = {
     addMapToDB: addMapToDB,

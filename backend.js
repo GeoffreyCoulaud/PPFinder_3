@@ -104,17 +104,31 @@ ipcMain.on('scanBeatmaps', (event)=>{
 });
 
 const {searchDB} = require('./src/js/dbCommunication.js');
-ipcMain.on('searchBeatmaps', function(event, {id, criteria}){
+ipcMain.on('searchBeatmaps', function(event, {id, page, criteria}){
+	/*
+	* id : String to keep track of the search queries
+	* page : Integer starting from 0
+	* criteria : Search criteria matching searchCriteriaFormat 
+	*/
 	console.log('Searching database...');
 	// Validate the criteria format
-	if (val.validate(criteria, searchCriteriaFormat)){
+	// Validate the page number
+	if (val.validate(criteria, searchCriteriaFormat) && val.validate(page, new val.NumberFormat(0, Number.MAX_SAFE_INTEGER, true))){
 		// Search the beatmap database according to the given criteria
-		searchDB(criteria, dbClient)
-		.then((results)=>{ 
-			event.reply('searchBeatmapsReply', {id: id, results: results}); 
+		searchDB(criteria, page, dbClient)
+		.then(([results, page, maxPage, nPerPage])=>{ 
+			event.reply('searchBeatmapsReply', {
+				id: id, 
+				page: page, // Return the real page given by database
+				maxPage: maxPage,
+				nPerPage: nPerPage,
+				results: results
+			}); 
 			console.log('Searching finished !');
 		})
-		.catch((err)=>{ console.error(err); });
+		.catch((err)=>{ 
+			console.error(err); 
+		});
 	} else {
 		// Wrong criteria format, don't search.
 		console.log('Error with criteria format');

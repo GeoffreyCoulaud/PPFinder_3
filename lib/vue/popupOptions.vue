@@ -16,6 +16,7 @@ const popupOptions = Vue.component('popupOptions', {
 	},
 	data: function(){return{
 		type: 'popupOptions',
+		role: 'popup'
 	}},
 	template: `<div :class="['popup', type, visible?'visible':'']">
 		<div class="closeButton" @click="$emit('close')">

@@ -3,7 +3,8 @@ const modOption = Vue.component('modOption', {
 	data: function(){return{
 		activeClass: "noCare",
 		activeState: 0,
-		type: 'modOption'
+		type: 'modOption',
+		role: 'input'
 	}},
 	template: 
 		`<div :class="['mod', type, activeClass]" :name="name" @click="loopState">

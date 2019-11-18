@@ -19,6 +19,7 @@ const customSelect = Vue.component('customSelect', {
 	</div>`,
 	data: function(){return{
 		type: 'customSelect',
+		role: 'input'
 	}}, 
 	methods: {
 		getValue: function(){

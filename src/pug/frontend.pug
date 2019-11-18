@@ -5,40 +5,42 @@ html(lang="fr")
 		title PPFinder
 		link(href="../css/frontend.css", type="text/css", rel="stylesheet")
 	body
-		nav#search 
-			//- Title
-			h1 
-				em PP 
-				| Finder v3
-			p {{lang['description']}}
-			
-			//- Sliders for the search values
-			custom-slider(v-for="slider in sliders" v-bind="slider")
-			
-			//- Order type selection
-			h3 {{lang['order-title']}}
-			custom-select(:name="'order'" :options="orderOptions")
-			//- Acending or descending order
-			custom-switch(:name="'order-way'" :defaultValue="true" :texts="[lang['order-way-asc'], lang['order-way-desc']]")
-			
+		div#vueContainer
+		
+			nav#search 
+				//- Title
+				h1 
+					em PP 
+					| Finder v3
+				p {{lang['description']}}
+				
+				//- Sliders for the search values
+				custom-slider(v-for="slider in search.sliders" v-bind="slider")
+				
+				//- Order type selection
+				h3 {{lang['order-title']}}
+				custom-select(:name="'order'" :options="search.orderOptions")
+				//- Acending or descending order
+				custom-switch(:name="'order-way'" :defaultValue="true" :texts="[lang['order-way-asc'], lang['order-way-desc']]")
+				
 
-			//- Mods
-			h3 {{lang['mods-title']}}
-			#mods
-				mod-reset
-				mod-option(v-for="mod in mods" :modName="mod" :name="'mod-'+mod.toLowerCase()")
+				//- Mods
+				h3 {{lang['mods-title']}}
+				#mods
+					mod-reset
+					mod-option(v-for="mod in search.mods" :modName="mod" :name="'mod-'+mod.toLowerCase()")
 
-			//- Search button
-			button-send
+				//- Search button
+				button-send
 
-		section#results
-			//- here will come search results
-			map-result(v-for="result in results" v-bind="result")
+			section#results
+				//- here will come search results
+				map-result(v-for="result in results" v-bind="result")
 
-		section#menus
-			//- Here are the floating buttons to change options and to load local files
-			menu-options(:languages="languages")
-			menu-load-maps
+			section#menus
+				//- Here are the floating buttons to change options and to load local files
+				menu-options(:languages="languages")
+				menu-load-maps
 
 		script(src="../../node_modules/vue/dist/vue.js")
 		script(src="../../node_modules/nouislider/distribute/nouislider.min.js")

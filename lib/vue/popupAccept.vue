@@ -6,7 +6,8 @@ const popupAccept = Vue.component('popupAccept', {
 		}
 	},
 	data: function(){return{
-		type: 'popupAccept'
+		type: 'popupAccept',
+		role: 'popup'
 	}},
 	template: `<div :class="['popup', type, visible ? 'visible' : '']">
 		<p><pre>{{lang['refresh-maps-desc']}}</pre></p>

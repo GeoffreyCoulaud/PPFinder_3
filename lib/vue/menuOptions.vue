@@ -15,7 +15,7 @@ const menuOptions = Vue.component('menuOptions', {
 			}
 		}
 	}},
-	template: `<div :class="['button', type]">
+	template: `<div :class="['menu', type]">
 		<round-button :image="'../img/options.svg'" @click="showOptions"></round-button>
 		<dark-filter :visible="popups.options.visible"></dark-filter>
 		<popup-options 

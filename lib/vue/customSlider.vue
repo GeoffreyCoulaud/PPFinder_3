@@ -13,7 +13,8 @@ const customSlider = Vue.component('customSlider', {
 		}
 	},
 	data: function(){return{
-		type: "customSlider",
+		type: 'customSlider',
+		role: 'input',
 		value: [this.range.min, this.range.max]
 	}},
 	template: `<div :class="type" :name="name">

@@ -15,7 +15,7 @@ const menuLoadMaps = Vue.component('menuLoadMaps', {
 			}
 		}
 	}},
-	template: `<div :class="['button', type]">
+	template: `<div :class="['menu', type]">
 		<round-button :image="'../img/playOsu.svg'" @click="showPermissionPopup"></round-button>
 		<dark-filter :visible="popups.permission.visible || popups.info.visible"></dark-filter>
 		<popup-accept :visible="popups.permission.visible" @accepted="onAccepted" @refused="onRefused"></popup-accept>
