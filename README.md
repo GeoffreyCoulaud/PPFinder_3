@@ -40,7 +40,7 @@ As of this current version, you will need a MYSQL server running, with a root us
 
 It hasn't been done for performance reasons, because sqlite would be 2x slower than mysql server or more, which is already really slow to search the database. This is really slow because for each .osu, PP Finder calculates difficulty data for every mod combination in ```src/js/modcombos.js```, and for every one of these combinations, several accuracies. In this version, this means that a single .osu file generates 1 mapmetadata entry, 145 modmetadata entries, and 580 accuraciesmetadata entries which sums up as 726 database entries for a single .osu file.
 
-The problem here is not really inserting speed (which is not that slow) but more searching speed, because for one search result, mysql asks once the modsmetadata table, then finds the beatmapmetadata entry associated and the 4 accuraciesmetadata associated with the mod. I'm sure you'll understand that this separation of data is surely atomic but not efficient at all.
+The problem here is not really inserting speed (which is not that slow) but more searching speed because for one search result, mysql asks once the modsmetadata table then finds the beatmapmetadata entry associated and the 4 accuraciesmetadata associated with the mod. I'm sure you'll understand that this separation of data is surely atomic but not efficient at all.
 
 If you really want to use PP Finder anyway, i advise running XAMPP which is a PHP/MYSQL stack. No need for anything else and you can tweak the database settings or users with phpMyAdmin.
 
