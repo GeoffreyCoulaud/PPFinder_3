@@ -33,11 +33,8 @@ const customSlider = Vue.component('customSlider', {
 		getValue: function(){
 			let val = this.slider().noUiSlider.get().map(x=>Number(x));
 			// get always returns an array
-			if (Array.isArray(val)){
-				return val;
-			} else {
-				return [val];
-			}
+			if (Array.isArray(val)){return val;} 
+			else {return [val];}
 		},
 		set: function(vals){
 			// use the noUiSlider api to set
@@ -45,12 +42,25 @@ const customSlider = Vue.component('customSlider', {
 			// update the value
 			this.update();
 		},
-		update: function(e){
-			// get the updated values
-			this.value = this.getValue();
-			// emit the changeValue event
-			this.$emit('changeValue');
-		}
+		updateSlider: function(e){
+			// detect if number input is selected
+			let numberInputs = this.$el.querySelectorAll('input[type="number"]');
+			let isNumberFocused = false;
+			for (let input of numberInputs){
+				if (input === document.activeElement){
+					isNumberFocused = true;
+					break;
+				}
+			}
+			// Only fire if the user is changing the slider,
+			// not if he types in the number inputs
+			if(!isNumberFocused){
+				// get the updated values
+				this.value = this.getValue();
+				// emit the changeValue event
+				this.$emit('changeValue');
+			}	
+		},
 	},
 	mounted: function(){
 		// Update the range to use the step option on all sub-ranges
@@ -65,7 +75,7 @@ const customSlider = Vue.component('customSlider', {
 			step: this.step,
 			connect: true,
 		});
-		this.slider().noUiSlider.on('update', this.update);
+		this.slider().noUiSlider.on('update', this.updateSlider);
 		
 		// Explicitly set the value attribute when value changes
 		// this is important, else Vuejs does not bind the value in the
